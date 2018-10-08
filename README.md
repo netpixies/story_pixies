@@ -1,2 +1,2 @@
-# story_pixies
+# storypixies
 Video Self Modeling Social Story Framework
