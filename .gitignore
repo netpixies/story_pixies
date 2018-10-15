@@ -2,3 +2,4 @@ tutorials
 .idea
 venv
 *.pyc
+.DS_Store
