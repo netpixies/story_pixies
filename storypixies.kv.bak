@@ -1,0 +1,40 @@
+#:kivy 1.10.1
+
+<StoryToolbar>:
+    BoxLayout:
+        ToolbarButton:
+            image: 'text'
+            callback:
+<StoryBase>:
+
+    BoxLayout:
+        cols: 2
+        canvas:
+            Color:
+                rgba: 1, 0.5, 0, 1
+            Rectangle:
+                pos: self.center_x, 2
+                size: 10, self.height
+        size_hint: 1,1
+        padding: 20
+        Label:
+            text: root.get_title()
+            pos_hint: {'top': 0.9}
+            height: 60
+            size_hint: 1, None
+            top: root.top
+        Button:
+            id: home_button
+            text_size: None, None
+            color: 1,1,1,1
+            size_hint: 0.1, 0.1
+            text: 'Home'
+        Button:
+            id: create_story
+            valign: 'bottom'
+            halign: 'left'
+            color: 1,1,1,1
+            size_hint:
+            text_size: None, None
+            text: 'Create a New Story!'
+            on_press: self.create_story()
