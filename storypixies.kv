@@ -37,6 +37,7 @@
         Button:
             text: 'Home'
             on_press: root.manager.current = 'library'
+
 <StoryCreator>:
     name: 'story_creator'
     BoxLayout:
@@ -57,12 +58,24 @@
         cols: 2
         spacing: '8dp'
 
+        Button:
+            text: 'Story Text Goes Here'
         Image:
             id: background
-            source: 'images/background.png'
+            source: 'images/brush_goats.JPG'
 
 <StorySettings>:
     name: 'story_settings'
-    Button:
-        text: 'Story Settings'
+
+    BoxLayout:
+        id: settings
+        canvas:
+            Color:
+                rgba: 1.0, 0.5, 0.0, 0.0
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        Button:
+            text: 'Settings'
+            on_release: app.open_settings()
 
