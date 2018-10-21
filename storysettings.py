@@ -1,17 +1,28 @@
 import json
 
-settings_json = json.dumps([
-    {'type': 'title',
-     'title': 'settings title'},
-    {'type': 'string',
-     'title': 'Library Name',
-     'desc': 'Set a library name',
-     'section': 'library',
-     'key': 'name'},
-    {'type': 'path',
-     'title': 'Library Stories',
-     'desc': 'Set library stories',
-     'section': 'library',
-     'key': 'story_dir',
-     'dirselect': True}
-])
+def get_settings_json(name):
+    settings_json = [
+        {'type': 'title',
+         'title': 'settings title'},
+        {'type': 'string',
+         'title': 'Library Name',
+         'desc': 'Set a library name',
+         'section': 'libraryname',
+         'key': 'name'},
+        {'type': 'path',
+         'title': 'Library Stories',
+         'desc': 'Set library stories',
+         'section': 'libraryname',
+         'key': 'story_dir',
+         'dirselect': True},
+        {'type': 'library_options',
+         'title': 'Current library',
+         'desc': 'The Current Library',
+         'section': 'libraryname',
+         'key': 'current_library'}]
+
+    for idx, i in enumerate(settings_json):
+        if settings_json[idx].get('section'):
+            settings_json[idx]['section'] = name
+
+    return json.dumps(settings_json)
