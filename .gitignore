@@ -3,3 +3,7 @@ tutorials
 venv
 *.pyc
 .DS_Store
+foo.py
+themes/*
+image-maybes/*
+video-maybes/*
