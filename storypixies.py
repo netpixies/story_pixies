@@ -39,6 +39,7 @@ class StoryLibrary(Screen):
 
     def on_pre_enter(self, *args):
         topscreen = self.ids.story_lib
+        topscreen.clear_widgets()
         topgrid = GridLayout(cols=2, spacing='2dp')
         topscreen.add_widget(topgrid)
         for i in range(0, self.books):
