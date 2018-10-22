@@ -7,11 +7,12 @@ from kivy.uix.settings import SettingsWithTabbedPanel
 from kivy.uix.screenmanager import Screen
 from storysettings import get_settings_json
 from kivy.uix.settings import SettingOptions
-from kivy.uix.settings import StringProperty
+from kivy.uix.settings import StringProperty, NumericProperty, ObjectProperty
 from pathlib import Path
+from kivy.uix.button import Button
+from kivy.uix.gridlayout import GridLayout
 
 kivy.require('1.10.1')
-
 
 
 class LibraryOptions(SettingOptions):
@@ -34,7 +35,16 @@ class StoryHome(Screen):
 
 
 class StoryLibrary(Screen):
-    pass
+    books = NumericProperty(10)
+
+    def on_pre_enter(self, *args):
+        topscreen = self.ids.story_lib
+        topgrid = GridLayout(cols=2, spacing='2dp')
+        topscreen.add_widget(topgrid)
+        for i in range(0, self.books):
+            b = Button(text="Book: " + str(i))
+            topgrid.add_widget(b)
+
 
 
 class StoryCreator(Screen):
@@ -54,6 +64,8 @@ class StorySettings(Screen):
 
 
 class StoryPixiesApp(App):
+    selected_library = StringProperty()
+
     def __init__(self, *args, **kwargs):
         super(StoryPixiesApp, self).__init__(*args, **kwargs)
         # Finds all files in libraries subdir ending with .ini
