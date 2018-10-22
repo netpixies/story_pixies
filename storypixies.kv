@@ -1,4 +1,5 @@
 #:kivy 1.10.1
+#: import FadeTransition kivy.uix.screenmanager.FadeTransition
 
 <StoryBase>:
     BoxLayout:
@@ -25,6 +26,7 @@
 
         ScreenManager:
             id: sm
+            transition: FadeTransition()
             StoryHome:
             StoryLibrary:
             StoryCreator:
@@ -36,7 +38,7 @@
     BoxLayout:
         Button:
             text: 'Home'
-            on_press: root.manager.current = 'library'
+            on_press: root.manager.current = 'story_library'
 
 <StoryCreator>:
     name: 'story_creator'
@@ -49,8 +51,9 @@
 <StoryLibrary>:
     name: 'story_library'
     BoxLayout:
-        Button:
-            text: 'Story Library'
+        id: story_lib
+
+
 
 <StoryBook>:
     name: 'story_book'
