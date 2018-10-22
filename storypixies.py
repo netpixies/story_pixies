@@ -18,7 +18,8 @@ class LibraryOptions(SettingOptions):
     function_string = StringProperty()
 
     def _create_popup(self, instance):
-        self.options = ['foo','bar','baz']
+        story_list = (Path(__file__).parents[0].absolute() / "libraries" / instance.section).glob('**/*.ini')
+        self.options = [l.stem for l in story_list]
         super(LibraryOptions, self)._create_popup(instance)
 
 
@@ -56,8 +57,8 @@ class StoryPixiesApp(App):
     def __init__(self, *args, **kwargs):
         super(StoryPixiesApp, self).__init__(*args, **kwargs)
         # Finds all files in libraries subdir ending with .ini
-        library_list = (Path(__file__).parents[0].absolute() / "libraries").glob('**/*.ini')
-        self.libraries = [l.stem for l in library_list]
+        library_list = (Path(__file__).parents[0].absolute() / "libraries")
+        self.libraries = [l.stem for l in library_list.iterdir() if l.is_dir()]
 
     def build(self):
         self.settings_cls = LibrarySettings
@@ -70,7 +71,7 @@ class StoryPixiesApp(App):
             config.setdefaults(library, {
                 'name': library,
                 'story_dir': Path(__file__).parents[0].absolute() / "stories" / library,
-                'current_library': []
+                'current_book' : ''
             })
 
     def build_settings(self, settings):

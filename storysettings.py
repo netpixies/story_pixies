@@ -16,10 +16,10 @@ def get_settings_json(name):
          'key': 'story_dir',
          'dirselect': True},
         {'type': 'library_options',
-         'title': 'Current library',
-         'desc': 'The Current Library',
+         'title': 'Current Book',
+         'desc': 'The Current Book',
          'section': 'libraryname',
-         'key': 'current_library'}]
+         'key': 'current_book'}]
 
     for idx, i in enumerate(settings_json):
         if settings_json[idx].get('section'):
