@@ -64,6 +64,14 @@ class StorySettings(Screen):
     pass
 
 
+class StoryTemplate(BoxLayout):
+    pass
+
+
+class CustomData(BoxLayout):
+    pass
+
+
 class StoryPixiesApp(App):
     selected_library = StringProperty()
 
