@@ -3,15 +3,15 @@ import json
 def get_settings_json(name):
     settings_json = [
         {'type': 'title',
-         'title': 'settings title'},
+         'title': 'Story Settings'},
         {'type': 'string',
          'title': 'Library Name',
-         'desc': 'Set a library name',
+         'desc': 'The library name',
          'section': 'libraryname',
          'key': 'name'},
         {'type': 'path',
          'title': 'Library Stories',
-         'desc': 'Set library stories',
+         'desc': 'Where are the stories located?',
          'section': 'libraryname',
          'key': 'story_dir',
          'dirselect': True},

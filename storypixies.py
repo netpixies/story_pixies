@@ -1,6 +1,5 @@
 import kivy
 
-
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.settings import SettingsWithTabbedPanel
@@ -97,7 +96,7 @@ class StoryPixiesApp(App):
 
     def build_settings(self, settings):
         for library in self.libraries:
-            settings.add_json_panel(' Settings: ' + library, self.config, data=get_settings_json(library))
+            settings.add_json_panel(library.capitalize(), self.config, data=get_settings_json(library))
 
     def on_config_change(self, config, section, key, value):
         print config, section, key, value
