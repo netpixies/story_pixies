@@ -6,8 +6,9 @@ from kivy.uix.settings import SettingsWithTabbedPanel
 from kivy.uix.screenmanager import Screen
 from storysettings import get_settings_json
 from kivy.uix.settings import SettingOptions
-from kivy.uix.settings import StringProperty, NumericProperty, ObjectProperty
+from kivy.uix.settings import StringProperty, NumericProperty, ObjectProperty, DictProperty
 from pathlib import Path
+from kivy.config import ConfigParser
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 
@@ -30,7 +31,16 @@ class LibrarySettings(SettingsWithTabbedPanel):
 
 
 class StoryHome(Screen):
-    pass
+    libraries = NumericProperty(10)
+
+    def on_enter(self, *args):
+        topscreen = self.ids.story_home_id
+        topscreen.clear_widgets()
+        topgrid = GridLayout(cols=2, spacing='2dp')
+        topscreen.add_widget(topgrid)
+        for i in range(0, self.libraries):
+            b = Button(text="Library: " + str(i))
+            topgrid.add_widget(b)
 
 
 class StoryLibrary(Screen):
@@ -46,13 +56,19 @@ class StoryLibrary(Screen):
             topgrid.add_widget(b)
 
 
-
 class StoryCreator(Screen):
     pass
 
 
 class StoryBook(Screen):
-    pass
+    currentBook = DictProperty()
+    currentValues = DictProperty()
+
+    # Test function
+    def get_story_config(self):
+        self.story_config = ConfigParser()
+        self.story_config.read('/Users/ahardy/Desktop/storypixies/libraries/sylvia/Hello World.ini')
+        print self.story_config.get('values', 'name')
 
 
 class StoryBase(BoxLayout):
@@ -60,6 +76,10 @@ class StoryBase(BoxLayout):
 
 
 class StorySettings(Screen):
+    pass
+
+
+class StoryFront(Screen):
     pass
 
 
@@ -83,10 +103,10 @@ class StoryPixiesApp(App):
     def build(self):
         self.settings_cls = LibrarySettings
         self.use_kivy_settings = False
-
         return StoryBase()
 
     def build_config(self, config):
+        config.setdefaults('global', {'template_dir': Path(__file__).parents[0].absolute() / "templates"})
         for library in self.libraries:
             config.setdefaults(library, {
                 'name': library,
@@ -95,6 +115,7 @@ class StoryPixiesApp(App):
             })
 
     def build_settings(self, settings):
+        settings.add_json_panel('Global', self.config, data=get_settings_json('global'))
         for library in self.libraries:
             settings.add_json_panel(library.capitalize(), self.config, data=get_settings_json(library))
 

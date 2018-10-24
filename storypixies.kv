@@ -27,18 +27,35 @@
         ScreenManager:
             id: sm
             transition: FadeTransition()
+            StoryFront:
             StoryHome:
             StoryLibrary:
             StoryCreator:
             StorySettings:
             StoryBook:
 
+<StoryFront>:
+    title: "Welcome to Story Pixies!"
+    Button:
+        on_release: root.manager.current = 'story_home'
+
+        Image:
+            source: 'images/background.png'
+            allow_stretch: True
+            size: self.parent.size
+            pos: self.parent.pos
+        Label:
+            text: "Welcome to Story Pixies!"
+            size: self.parent.size
+            pos: self.parent.pos
+            font_size: 60
+            bold: True
+
+
 <StoryHome>:
     name: 'story_home'
     BoxLayout:
-        Button:
-            text: 'Home'
-            on_press: root.manager.current = 'story_library'
+        id: story_home_id
 
 <StoryCreator>:
     name: 'story_creator'
@@ -67,6 +84,7 @@
 
         Button:
             text: 'Story Text Goes Here'
+            on_press: root.get_story_config()
         Image:
             id: background
             source: 'images/brush_goats.JPG'
