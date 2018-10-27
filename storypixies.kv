@@ -54,8 +54,12 @@
 
 <StoryHome>:
     name: 'story_home'
+    libraries: app.libraries
+    selected_library: app.selected_library
+
     BoxLayout:
         id: story_home_id
+
 
 <StoryCreator>:
     name: 'story_creator'
@@ -67,6 +71,7 @@
 
 <StoryLibrary>:
     name: 'story_library'
+    selected_library: app.selected_library
     BoxLayout:
         id: story_lib
 
@@ -84,7 +89,7 @@
 
         Button:
             text: 'Story Text Goes Here'
-            on_press: root.get_story_config()
+            on_release: root.get_story_config()
         Image:
             id: background
             source: 'images/brush_goats.JPG'
