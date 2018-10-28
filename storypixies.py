@@ -12,6 +12,7 @@ from kivy.config import ConfigParser
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.video import Video
+from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 
 kivy.require('1.10.1')
@@ -58,8 +59,8 @@ class StoryLibrary(Screen):
         super(StoryLibrary, self).__init__(*args, **kwargs)
 
     def navigate_to_book(self, book):
-        main_app.set_selected_book(book.text)
-        print "Set book to : " + self.selected_book
+        main_app.set_selected_story(book.text)
+        print "Set book to : " + self.selected_story
         self.manager.current = 'story_book'
 
     def on_pre_enter(self, *args):
@@ -67,10 +68,20 @@ class StoryLibrary(Screen):
         topscreen.clear_widgets()
         topgrid = GridLayout(cols=2, spacing='2dp')
         topscreen.add_widget(topgrid)
+
         for story in main_app.get_stories():
-            b = Button(text=str(story))
+            b = Button(text=str(story),
+                       id=str(story)+"_button",
+                       background_normal=main_app.get_story_title_image(str(story)),
+                       font_size=60,
+                       bold=True,
+                       outline_width=10,
+                       italic=True,
+                       outline_color=(0,0,0,0))
+
             b.bind(on_release=self.navigate_to_book)
             topgrid.add_widget(b)
+
 
 
 class StoryCreator(Screen):
@@ -82,34 +93,14 @@ class StoryBook(Screen):
     def __init__(self, *args, **kwargs):
         super(StoryBook, self).__init__(*args, **kwargs)
 
-
     def on_pre_enter(self, *args):
         topgrid = self.ids.story_book_grid
         topgrid.clear_widgets()
-        b = Button(text=self.get_story_text())
-        i = Image(id='background', source='images/brush_goats.JPG')
+        b = Button(text=main_app.get_story_title_text())
+        i = Image(id='background', source=main_app.get_story_title_image())
         topgrid.add_widget(b)
         topgrid.add_widget(i)
 
-    def get_story_config(self):
-        print self.template_config.get('defaults', 'name')
-        print self.story_config.get('values', 'title_media_location')
-
-    def get_story_text(self):
-        print "Book: " + self.selected_book
-        if self.template_config is None:
-            return 'Default Text'
-        else:
-            return self.template_config.get('title', 'text')
-
-    def get_story_title(self):
-        if self.story_config is None:
-            return 'Default title'
-        else:
-            return self.template_config.get('title', 'name')
-
-    def populate_story_from_template(self):
-        pass
 
 class StoryBase(BoxLayout):
     pass
@@ -133,7 +124,7 @@ class CustomData(BoxLayout):
 
 class StoryPixiesApp(App):
     selected_library = StringProperty("default")
-    selected_book = StringProperty("default")
+    selected_story = StringProperty("default")
     template_config = ObjectProperty(None)
     story_config = ObjectProperty(None)
 
@@ -146,19 +137,18 @@ class StoryPixiesApp(App):
     def set_selected_library(self, library):
         self.selected_library = library
 
-    def set_selected_book(self, book):
-        self.selected_book = book
+    def set_selected_story(self, book):
+        self.selected_story = book
 
         template_dir = self.config.get('global', 'template_dir')
         template_config = ConfigParser()
-        template_config.read(template_dir + '/' + self.selected_book + '.ini')
+        template_config.read(template_dir + '/' + self.selected_story + '.ini')
         self.template_config = template_config
 
         story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.selected_library)
         story_config = ConfigParser()
-        story_config.read(str(story_dir) + '/' + self.selected_book + '.ini')
+        story_config.read(str(story_dir) + '/' + self.selected_story + '.ini')
         self.story_config = story_config
-
 
     def build(self):
         self.settings_cls = LibrarySettings
@@ -193,9 +183,47 @@ class StoryPixiesApp(App):
         library_list = (Path(__file__).parents[0].absolute() / "libraries")
         return [l.stem for l in library_list.iterdir() if l.is_dir()]
 
-    def get_stories(self):
-        story_list = (Path(__file__).parents[0].absolute() / "libraries" / self.selected_library)
+    def get_stories(self, library=None):
+        if library is None:
+            library = self.selected_library
+
+        story_list = (Path(__file__).parents[0].absolute() / "libraries" / library)
         return [s.stem for s in story_list.iterdir() if s.is_file()]
+
+    def get_story_title_image(self, story=None, library=None):
+        if story is None:
+            story = self.selected_story
+
+        if library is None:
+            library = self.selected_library
+
+        story_dir = (Path(__file__).parents[0].absolute() / "libraries" / library)
+        story_config = ConfigParser()
+        story_config.read(str(story_dir) + '/' + story + '.ini')
+        return story_config.get('values', 'title_media_location')
+
+    def get_story_config(self, story=None, library=None):
+        print self.template_config.get('defaults', 'name')
+        print self.story_config.get('values', 'title_media_location')
+
+    def get_story_title_text(self, story=None, library=None):
+        if story is None:
+            story = self.selected_story
+        if library is None:
+            library = self.selected_library
+
+        print "Book: " + story
+        if self.template_config is None:
+            return 'Default Text'
+        else:
+            return self.template_config.get('title', 'text')
+
+    def get_story_title(self, story=None, library=None):
+        if story is None:
+            return self.template_config.get('title', 'name')
+
+    def populate_story_from_template(self, story=None):
+        pass
 
 
 if __name__ == '__main__':

@@ -72,7 +72,7 @@
 <StoryLibrary>:
     name: 'story_library'
     selected_library: app.selected_library
-    selected_book: app.selected_book
+    selected_story: app.selected_story
 
     BoxLayout:
         id: story_lib
@@ -85,8 +85,9 @@
 
 <StoryBook>:
     name: 'story_book'
+    id: story_book
     selected_library: app.selected_library
-    selected_book: app.selected_book
+    selected_story: app.selected_story
     template_config: app.template_config
     story_config: app.story_config
 
