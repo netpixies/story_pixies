@@ -67,12 +67,14 @@ class StoryLibrary(Screen):
         topscreen = self.ids.story_lib
         topscreen.clear_widgets()
         topgrid = GridLayout(cols=2, spacing='2dp')
+        topgrid.clear_widgets()
         topscreen.add_widget(topgrid)
 
         for story in main_app.get_stories():
+            button_media = main_app.get_story_media('title', str(story))
             b = Button(text=str(story),
                        id=str(story)+"_button",
-                       background_normal=main_app.get_story_title_image(str(story)),
+                       background_normal=button_media,
                        font_size=60,
                        bold=True,
                        outline_width=10,
@@ -94,12 +96,51 @@ class StoryBook(Screen):
         super(StoryBook, self).__init__(*args, **kwargs)
 
     def on_pre_enter(self, *args):
+        self.assemble_layout()
+
+    def assemble_layout(self):
         topgrid = self.ids.story_book_grid
         topgrid.clear_widgets()
-        b = Button(text=main_app.get_story_title_text())
-        i = Image(id='background', source=main_app.get_story_title_image())
-        topgrid.add_widget(b)
+        d = self.get_story_display(topgrid)
+        i = self.get_media_display()
+        back = Button(text="back", size_hint_y=0.1)
+        next = Button(text="next", size_hint_y=0.1)
+        back.bind(on_release=self.prev_page)
+        next.bind(on_release=self.next_page)
+        topgrid.add_widget(d)
         topgrid.add_widget(i)
+        topgrid.add_widget(back)
+        topgrid.add_widget(next)
+
+    def prev_page(self, instance):
+        if self.current_page == 'title':
+            self.manager.current = 'story_library'
+        else:
+            main_app.previous_page()
+            self.assemble_layout()
+
+    def next_page(self, instance):
+        main_app.next_page()
+        self.assemble_layout()
+
+    def get_story_display(self, topgrid):
+        l = Label(text=main_app.get_story_text(),
+                  text_size=(None,None),
+                  font_size="20sp",
+                  pos_hint={'center_x':0.5, 'center_y': 100.85},
+                  size_hint_y=1,
+                  halign="center",
+                  valign="middle")
+
+
+        return l
+
+    def get_media_display(self):
+        media_type = main_app.get_story_media_type()
+        if media_type == 'image':
+            return Image(source=main_app.get_story_media())
+        elif media_type == 'video':
+            return Video(source=main_app.get_story_media())
 
 
 class StoryBase(BoxLayout):
@@ -127,6 +168,9 @@ class StoryPixiesApp(App):
     selected_story = StringProperty("default")
     template_config = ObjectProperty(None)
     story_config = ObjectProperty(None)
+    current_page = StringProperty("title")
+    current_page_no = NumericProperty(0)
+    current_pages = ListProperty([])
 
     def __init__(self, *args, **kwargs):
         super(StoryPixiesApp, self).__init__(*args, **kwargs)
@@ -134,24 +178,68 @@ class StoryPixiesApp(App):
         self.libraries = self.get_libraries()
         self.templates = self.get_templates()
 
-    def set_selected_library(self, library):
+    def set_property_defaults(self):
+        self.selected_library = "default"
+        self.selected_story = "default"
+        self.template_config = ConfigParser()
+        self.story_config = ConfigParser()
+        self.current_page = "title"
+        self.current_page_no = 0
+        self.current_pages = []
+
+    def set_selected_library(self, library, force=False):
+        if self.selected_library == library:
+            print "Not updating library without force flag."
+            return
+
+        self.set_property_defaults()
         self.selected_library = library
 
-    def set_selected_story(self, book):
-        self.selected_story = book
+    def set_selected_story(self, book, force=False):
+        if book == self.selected_story and not force:
+            print "Not updating story without force flag."
+            return
 
+        self.selected_story = book
+        self.current_page = "title"
+        self.current_page_no = 0
+
+        # Get individual story defaults
         story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.selected_library)
         story_config = ConfigParser()
         story_config.read(str(story_dir) + '/' + self.selected_story + '.ini')
         self.story_config = story_config
+
+        # Get templatized values
         template_dir = self.config.get('global', 'template_dir')
         template_config = ConfigParser()
+
+        # Interpolate individual story defaults into templatized config
         template_config.setall('DEFAULT', dict(self.story_config.items('values')))
         template_config.read(template_dir + '/' + self.selected_story + '.ini')
+
+        # Set updated config as the current config
         self.template_config = template_config
 
+        # Set the pages in the story
+        pages = template_config.get('title', 'pages')
+        self.current_pages = ['title'] + [x.strip() for x in pages.split(',')]
 
+    def set_current_page(self, page):
+        self.current_page = page
 
+    def next_page(self):
+        self.current_page_no = (self.current_page_no + 1)%(len(self.current_pages))
+        self.current_page = self.current_pages[self.current_page_no]
+
+    def previous_page(self):
+        if self.current_page_no <= 0:
+            new_page = 0
+        else:
+            new_page = self.current_page_no - 1
+
+        self.current_page_no = new_page
+        self.current_page = self.current_pages[self.current_page_no]
 
     def build(self):
         self.settings_cls = LibrarySettings
@@ -193,23 +281,58 @@ class StoryPixiesApp(App):
         story_list = (Path(__file__).parents[0].absolute() / "libraries" / library)
         return [s.stem for s in story_list.iterdir() if s.is_file()]
 
-    def get_story_title_image(self, story=None, library=None):
+    def get_story_media(self, page=None, story=None, library=None):
+        if page is None:
+            page = self.current_page
+
+        if library is None:
+            library = self.selected_library
+
+        if story is not None:
+            story_dir = (Path(__file__).parents[0].absolute() / "libraries" / library)
+            story_config = ConfigParser()
+            story_config.read(str(story_dir) + '/' + story + '.ini')
+            return story_config.get('values', '_title_media_location')
+        else:
+            return self.template_config.get(page, 'media_location')
+
+    def get_story_orientation(self, page=None, story=None, library=None):
+        if page is None:
+            page = self.current_page
+
         if story is None:
             story = self.selected_story
 
         if library is None:
             library = self.selected_library
 
-        story_dir = (Path(__file__).parents[0].absolute() / "libraries" / library)
-        story_config = ConfigParser()
-        story_config.read(str(story_dir) + '/' + story + '.ini')
-        return story_config.get('values', '_title_media_location')
+        if self.template_config is None:
+            return 'horizontal'
+        else:
+            return self.template_config.get(page, 'orientation')
+
+    def get_story_media_type(self, page=None, story=None, library=None):
+        if page is None:
+            page = self.current_page
+
+        if story is None:
+            story = self.selected_story
+
+        if library is None:
+            library = self.selected_library
+
+        if self.template_config is None:
+            return 'images/background.png'
+        else:
+            return self.template_config.get(page, 'media')
 
     def get_story_config(self, story=None, library=None):
         print self.template_config.get('defaults', 'name')
         print self.story_config.get('values', '_title_media_location')
 
-    def get_story_title_text(self, story=None, library=None):
+    def get_story_text(self, page=None, story=None, library=None):
+        if page is None:
+            page = self.current_page
         if story is None:
             story = self.selected_story
         if library is None:
@@ -218,7 +341,9 @@ class StoryPixiesApp(App):
         if self.template_config is None:
             return 'Default Text'
         else:
-            return self.template_config.get('title', 'text')
+            print "current page: " + self.current_page
+            print "current page no: " + str(self.current_page_no)
+            return self.template_config.get(page, 'text')
 
     def get_story_title(self, story=None, library=None):
         if story is None:
