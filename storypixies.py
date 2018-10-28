@@ -140,15 +140,18 @@ class StoryPixiesApp(App):
     def set_selected_story(self, book):
         self.selected_story = book
 
-        template_dir = self.config.get('global', 'template_dir')
-        template_config = ConfigParser()
-        template_config.read(template_dir + '/' + self.selected_story + '.ini')
-        self.template_config = template_config
-
         story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.selected_library)
         story_config = ConfigParser()
         story_config.read(str(story_dir) + '/' + self.selected_story + '.ini')
         self.story_config = story_config
+        template_dir = self.config.get('global', 'template_dir')
+        template_config = ConfigParser()
+        template_config.setall('DEFAULT', dict(self.story_config.items('values')))
+        template_config.read(template_dir + '/' + self.selected_story + '.ini')
+        self.template_config = template_config
+
+
+
 
     def build(self):
         self.settings_cls = LibrarySettings
@@ -200,11 +203,11 @@ class StoryPixiesApp(App):
         story_dir = (Path(__file__).parents[0].absolute() / "libraries" / library)
         story_config = ConfigParser()
         story_config.read(str(story_dir) + '/' + story + '.ini')
-        return story_config.get('values', 'title_media_location')
+        return story_config.get('values', '_title_media_location')
 
     def get_story_config(self, story=None, library=None):
         print self.template_config.get('defaults', 'name')
-        print self.story_config.get('values', 'title_media_location')
+        print self.story_config.get('values', '_title_media_location')
 
     def get_story_title_text(self, story=None, library=None):
         if story is None:
@@ -212,7 +215,6 @@ class StoryPixiesApp(App):
         if library is None:
             library = self.selected_library
 
-        print "Book: " + story
         if self.template_config is None:
             return 'Default Text'
         else:
@@ -222,8 +224,9 @@ class StoryPixiesApp(App):
         if story is None:
             return self.template_config.get('title', 'name')
 
-    def populate_story_from_template(self, story=None):
-        pass
+
+
+
 
 
 if __name__ == '__main__':
