@@ -10,6 +10,8 @@ from kivy.uix.settings import StringProperty, NumericProperty, ObjectProperty, D
 from pathlib import Path
 from kivy.config import ConfigParser
 from kivy.uix.button import Button
+from kivy.uix.image import Image
+from kivy.uix.video import Video
 from kivy.uix.gridlayout import GridLayout
 
 kivy.require('1.10.1')
@@ -54,10 +56,10 @@ class StoryLibrary(Screen):
 
     def __init__(self, *args, **kwargs):
         super(StoryLibrary, self).__init__(*args, **kwargs)
-        #print main_app.config.get('sylvia', 'current_book')
 
     def navigate_to_book(self, book):
         main_app.set_selected_book(book.text)
+        print "Set book to : " + self.selected_book
         self.manager.current = 'story_book'
 
     def on_pre_enter(self, *args):
@@ -76,17 +78,38 @@ class StoryCreator(Screen):
 
 
 class StoryBook(Screen):
-    currentBook = DictProperty()
-    currentValues = DictProperty()
 
     def __init__(self, *args, **kwargs):
         super(StoryBook, self).__init__(*args, **kwargs)
-        self.story_config = ConfigParser()
-        self.story_config.read('/Users/ahardy/Desktop/storypixies/libraries/sylvia/Hello World.ini')
+
+
+    def on_pre_enter(self, *args):
+        topgrid = self.ids.story_book_grid
+        topgrid.clear_widgets()
+        b = Button(text=self.get_story_text())
+        i = Image(id='background', source='images/brush_goats.JPG')
+        topgrid.add_widget(b)
+        topgrid.add_widget(i)
 
     def get_story_config(self):
-        print self.story_config.get('values', 'name')
+        print self.template_config.get('defaults', 'name')
+        print self.story_config.get('values', 'title_media_location')
 
+    def get_story_text(self):
+        print "Book: " + self.selected_book
+        if self.template_config is None:
+            return 'Default Text'
+        else:
+            return self.template_config.get('title', 'text')
+
+    def get_story_title(self):
+        if self.story_config is None:
+            return 'Default title'
+        else:
+            return self.template_config.get('title', 'name')
+
+    def populate_story_from_template(self):
+        pass
 
 class StoryBase(BoxLayout):
     pass
@@ -111,6 +134,8 @@ class CustomData(BoxLayout):
 class StoryPixiesApp(App):
     selected_library = StringProperty("default")
     selected_book = StringProperty("default")
+    template_config = ObjectProperty(None)
+    story_config = ObjectProperty(None)
 
     def __init__(self, *args, **kwargs):
         super(StoryPixiesApp, self).__init__(*args, **kwargs)
@@ -124,9 +149,21 @@ class StoryPixiesApp(App):
     def set_selected_book(self, book):
         self.selected_book = book
 
+        template_dir = self.config.get('global', 'template_dir')
+        template_config = ConfigParser()
+        template_config.read(template_dir + '/' + self.selected_book + '.ini')
+        self.template_config = template_config
+
+        story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.selected_library)
+        story_config = ConfigParser()
+        story_config.read(str(story_dir) + '/' + self.selected_book + '.ini')
+        self.story_config = story_config
+
+
     def build(self):
         self.settings_cls = LibrarySettings
         self.use_kivy_settings = False
+        self.title = 'Story Pixies'
         return StoryBase()
 
     def build_config(self, config):
@@ -159,11 +196,6 @@ class StoryPixiesApp(App):
     def get_stories(self):
         story_list = (Path(__file__).parents[0].absolute() / "libraries" / self.selected_library)
         return [s.stem for s in story_list.iterdir() if s.is_file()]
-
-def populate_story_from_template(template, story):
-    pass
-
-
 
 
 if __name__ == '__main__':

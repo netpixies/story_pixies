@@ -72,6 +72,8 @@
 <StoryLibrary>:
     name: 'story_library'
     selected_library: app.selected_library
+    selected_book: app.selected_book
+
     BoxLayout:
         id: story_lib
 
@@ -83,16 +85,17 @@
 
 <StoryBook>:
     name: 'story_book'
+    selected_library: app.selected_library
+    selected_book: app.selected_book
+    template_config: app.template_config
+    story_config: app.story_config
+
     GridLayout:
+        id: story_book_grid
         cols: 2
         spacing: '8dp'
 
-        Button:
-            text: 'Story Text Goes Here'
-            on_release: root.get_story_config()
-        Image:
-            id: background
-            source: 'images/brush_goats.JPG'
+
 
 <CustomData>:
     name: 'custom_data'
