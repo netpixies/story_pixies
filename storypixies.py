@@ -14,6 +14,7 @@ from kivy.uix.image import Image
 from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
+from random import randint
 
 kivy.require('1.10.1')
 
@@ -41,13 +42,22 @@ class StoryHome(Screen):
         main_app.set_selected_library(instance.text)
         self.manager.current = 'story_library'
 
+    def get_background(self):
+        return "images/backgrounds/" + str(randint(1,4)) + ".png"
+
     def on_enter(self, *args):
         topscreen = self.ids.story_home_id
         topscreen.clear_widgets()
         topgrid = GridLayout(cols=2, spacing='2dp')
         topscreen.add_widget(topgrid)
         for i in self.libraries:
-            b = Button(text=i)
+            b = Button(text=i,
+                       background_normal=self.get_background(),
+                       font_size=60,
+                       bold=True,
+                       outline_width=10,
+                       italic=True,
+                       outline_color=(0,0,0,0))
             b.bind(on_release=self.navigate_to_library)
             topgrid.add_widget(b)
 
@@ -125,8 +135,12 @@ class StoryBook(Screen):
             self.assemble_layout()
 
     def next_page(self, instance):
+        page_now = self.current_page_no
         main_app.next_page()
-        self.assemble_layout()
+        if page_now == self.current_page_no:
+            self.manager.current = 'story_library'
+        else:
+            self.assemble_layout()
 
     def get_story_display(self, topgrid):
         l = Label(text=main_app.get_story_text(),
@@ -234,14 +248,11 @@ class StoryPixiesApp(App):
         self.current_page = page
 
     def next_page(self):
-        self.current_page_no = (self.current_page_no + 1)%(len(self.current_pages))
+        self.current_page_no = min(self.current_page_no + 1, len(self.current_pages)- 1)
         self.current_page = self.current_pages[self.current_page_no]
 
     def previous_page(self):
-        if self.current_page_no <= 0:
-            new_page = 0
-        else:
-            new_page = self.current_page_no - 1
+        new_page = min(self.current_page_no - 1, 0)
 
         self.current_page_no = new_page
         self.current_page = self.current_pages[self.current_page_no]
