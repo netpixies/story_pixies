@@ -10,19 +10,29 @@
             height: '48dp'
             Button:
                 text: 'Choose Library'
+                background_normal: 'images/backgrounds/button.png'
                 on_release: sm.current = 'story_home'
+                bold: True
             Button:
                 text: 'My Library'
+                background_normal: 'images/backgrounds/button.png'
                 on_release: sm.current = 'story_library'
+                bold: True
             Button:
                 text: 'Creator'
+                background_normal: 'images/backgrounds/button.png'
                 on_release: sm.current = 'story_creator'
+                bold: True
             Button:
                 text: 'Settings'
+                background_normal: 'images/backgrounds/button.png'
                 on_release: sm.current = 'story_settings'
+                bold: True
             Button:
                 text: 'Book'
+                background_normal: 'images/backgrounds/button.png'
                 on_release: sm.current = 'story_book'
+                bold: True
 
         ScreenManager:
             id: sm
@@ -38,18 +48,20 @@
     title: "Welcome to Story Pixies!"
     Button:
         on_release: root.manager.current = 'story_home'
-
-        Image:
-            source: 'images/background.png'
-            allow_stretch: True
-            size: self.parent.size
-            pos: self.parent.pos
-        Label:
-            text: "Welcome to Story Pixies!"
-            size: self.parent.size
-            pos: self.parent.pos
-            font_size: 60
-            bold: True
+        background_normal: 'images/background.png'
+        allow_stretch: True
+        bold: True
+        outline_width: 10
+        italic: True
+        outline_color: [0, 0, 0]
+        size: self.parent.size
+        pos: self.parent.pos
+    Label:
+        text: "Welcome to Story Pixies!"
+        size: self.parent.size
+        pos: self.parent.pos
+        font_size: 60
+        bold: True
 
 
 <StoryHome>:

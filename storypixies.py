@@ -118,8 +118,14 @@ class StoryBook(Screen):
         topgrid.clear_widgets()
         d = self.get_story_display(topgrid)
         self.media_property = self.get_media_display()
-        back = Button(text="back", size_hint_y=0.1)
-        next = Button(text="next", size_hint_y=0.1)
+        back = Button(text="Back",
+                      size_hint_y=0.1,
+                      background_normal='images/backgrounds/button.png',
+                      bold=True)
+        next = Button(text="Next",
+                      size_hint_y=0.1,
+                      background_normal='images/backgrounds/button.png',
+                      bold=True)
         back.bind(on_release=self.prev_page)
         next.bind(on_release=self.next_page)
         topgrid.add_widget(d)
