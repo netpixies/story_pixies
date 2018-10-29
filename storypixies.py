@@ -252,7 +252,7 @@ class StoryPixiesApp(App):
         self.current_page = self.current_pages[self.current_page_no]
 
     def previous_page(self):
-        new_page = min(self.current_page_no - 1, 0)
+        new_page = min(self.current_page_no - 1, len(self.current_pages)-1)
 
         self.current_page_no = new_page
         self.current_page = self.current_pages[self.current_page_no]
