@@ -11,7 +11,7 @@ from pathlib import Path
 from kivy.config import ConfigParser
 from kivy.uix.button import Button
 from kivy.uix.image import Image
-from kivy.uix.video import Video
+from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 
@@ -92,6 +92,8 @@ class StoryCreator(Screen):
 
 class StoryBook(Screen):
 
+    media_property = ObjectProperty(None)
+
     def __init__(self, *args, **kwargs):
         super(StoryBook, self).__init__(*args, **kwargs)
 
@@ -99,16 +101,19 @@ class StoryBook(Screen):
         self.assemble_layout()
 
     def assemble_layout(self):
+        if self.media_property is not None:
+            self.media_property.state = 'stop'
+
         topgrid = self.ids.story_book_grid
         topgrid.clear_widgets()
         d = self.get_story_display(topgrid)
-        i = self.get_media_display()
+        self.media_property = self.get_media_display()
         back = Button(text="back", size_hint_y=0.1)
         next = Button(text="next", size_hint_y=0.1)
         back.bind(on_release=self.prev_page)
         next.bind(on_release=self.next_page)
         topgrid.add_widget(d)
-        topgrid.add_widget(i)
+        topgrid.add_widget(self.media_property)
         topgrid.add_widget(back)
         topgrid.add_widget(next)
 
@@ -138,9 +143,9 @@ class StoryBook(Screen):
     def get_media_display(self):
         media_type = main_app.get_story_media_type()
         if media_type == 'image':
-            return Image(source=main_app.get_story_media())
+            return Image(source=main_app.get_story_media(), allow_stretch=False, keep_ratio=True)
         elif media_type == 'video':
-            return Video(source=main_app.get_story_media())
+            return VideoPlayer(id=self.current_page + 'video', source=main_app.get_story_media(), state='play', options={'allow_stretch': True, 'keep_ratio': True})
 
 
 class StoryBase(BoxLayout):
