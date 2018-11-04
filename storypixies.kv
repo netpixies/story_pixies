@@ -124,6 +124,20 @@
 
 
 
+<StoryBookButton@Button>:
+    selected_story: app.selected_story
+    font_size: 60
+    bold: True
+    outline_width: 10
+    italic: True
+    height: 200
+    size_hint_y: None
+    outline_color: (0,0,0,0)
+    on_press: app.set_selected_story(self.text)
+    on_release:
+        if app.selected_story == self.text: \
+        self.parent.manager.current = 'story_book'
+
 <StoryLibrary>:
     name: 'story_library'
     selected_library: app.selected_library
@@ -131,7 +145,32 @@
 
     BoxLayout:
         id: story_lib
+        ScrollView:
+            bar_width: 0
+            id: story_scroll_view
+            size_hint_x: 1
+            size_hint_y: None
+            size: (win.Window.width,win.Window.height)
+            GridLayout:
+                id: story_grid
+                cols: 4
+                spacing: 5
+                size_hint_y: None
+                size_hint_x: 1
+                spacing: 10
+                padding: 10
+                scroll_y: story_slider.value
+                on_touch_move: story_slider.value = self.scroll_y
 
+        Slider:
+            size_hint_x: None
+            width: root.width*0.2
+            id: story_slider
+            min: 0
+            max: 1
+            orientation: 'vertical'
+            value: story_scroll_view.scroll_y
+            on_value: story_scroll_view.scroll_y = self.value
 
 <StoryTemplate>:
     name: 'story_template'

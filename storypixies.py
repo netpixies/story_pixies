@@ -39,10 +39,8 @@ class LibraryButton(Button):
 
 
 class StoryHome(Screen):
-
     def __init__(self, **kwargs):
         super(StoryHome, self).__init__(**kwargs)
-
 
     def on_enter(self, *args):
         library_grid = self.ids.library_grid
@@ -54,37 +52,24 @@ class StoryHome(Screen):
         library_grid.bind(minimum_height=library_grid.setter('height'))
 
 
+class StoryButton(Button):
+    pass
+
+
 class StoryLibrary(Screen):
     books = NumericProperty(10)
 
     def __init__(self, **kwargs):
         super(StoryLibrary, self).__init__(**kwargs)
 
-    def navigate_to_book(self, book):
-        main_app.set_selected_story(book.text)
-        print "Set book to : " + self.selected_story
-        self.manager.current = 'story_book'
-
-    def on_pre_enter(self, *args):
-        topscreen = self.ids.story_lib
-        topscreen.clear_widgets()
-        topgrid = GridLayout(cols=2, spacing='2dp')
-        topgrid.clear_widgets()
-        topscreen.add_widget(topgrid)
-
+    def on_enter(self, *args):
+        story_grid = self.ids.story_grid
         for story in main_app.get_stories():
             button_media = main_app.get_story_media('title', str(story))
-            b = Button(text=str(story),
-                       id=str(story)+"_button",
-                       background_normal=button_media,
-                       font_size=60,
-                       bold=True,
-                       outline_width=10,
-                       italic=True,
-                       outline_color=(0,0,0,0))
+            b = StoryButton(text=story, background_normal=button_media)
+            story_grid.add_widget(b)
 
-            b.bind(on_release=self.navigate_to_book)
-            topgrid.add_widget(b)
+        story_grid.bind(minimum_height=story_grid.setter('height'))
 
 
 
