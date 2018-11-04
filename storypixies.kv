@@ -1,6 +1,6 @@
 #:kivy 1.10.1
 #: import FadeTransition kivy.uix.screenmanager.FadeTransition
-
+#: import win kivy.core.window
 <StoryBase>:
     BoxLayout:
         orientation: "vertical"
@@ -67,11 +67,13 @@
 <LibraryButton@Button>:
     libraries: app.libraries
     selected_library: app.selected_library
-    background_normal: app.get_library_background()
+    background_normal: 'images/backgrounds/button.png'
     font_size: 60
     bold: True
     outline_width: 10
     italic: True
+    height: 200
+    size_hint_y: None
     outline_color: (0,0,0,0)
     on_press: app.set_selected_library(self.text)
     on_release:
@@ -83,42 +85,23 @@
     name: 'story_home'
     libraries: app.libraries
     selected_library: app.selected_library
-    layout_content: layout_content
 
     BoxLayout:
         id: story_home_id
         ScrollView:
-            size: self.size
+            size_hint_x: 1
+            size_hint_y: None
+            size: (win.Window.width,win.Window.height)
             GridLayout:
-                id: layout_content
+                id: library_grid
                 manager: root.manager
                 cols: 2
                 size_hint_y: None
-                spacing: '2dp'
+                size_hint_x: 1
+                spacing: 10
+                padding: 10
 
-                LibraryButton:
-                    text: app.get_library(0)
 
-                LibraryButton:
-                    text: app.get_library(1)
-
-                LibraryButton:
-                    text: app.get_library(2)
-
-                LibraryButton:
-                    text: app.get_library(3)
-
-                LibraryButton:
-                    text: app.get_library(4)
-
-                LibraryButton:
-                    text: app.get_library(5)
-
-                LibraryButton:
-                    text: app.get_library(6)
-
-                LibraryButton:
-                    text: app.get_library(7)
 
 
 <StoryCreator>:

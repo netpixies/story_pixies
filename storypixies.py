@@ -29,24 +29,36 @@ class LibraryOptions(SettingOptions):
 
 
 class LibrarySettings(SettingsWithTabbedPanel):
-    def __init__(self, *args, **kwargs):
-        super(LibrarySettings, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(LibrarySettings, self).__init__(**kwargs)
         self.register_type('library_options', LibraryOptions)
 
 
-class StoryHome(Screen):
-    layout_content = ObjectProperty(None)
+class LibraryButton(Button):
+    pass
 
-    def __init__(self, *args, **kwargs):
-        super(StoryHome, self).__init__(*args, **kwargs)
-        self.layout_content.bind(minimum_height=self.layout_content.setter('height'))
+
+class StoryHome(Screen):
+
+    def __init__(self, **kwargs):
+        super(StoryHome, self).__init__(**kwargs)
+
+
+    def on_enter(self, *args):
+        library_grid = self.ids.library_grid
+        for i in self.libraries:
+            print "Library is: " + main_app.get_library(i)
+            b = LibraryButton(text=i)
+            library_grid.add_widget(b)
+
+        library_grid.bind(minimum_height=library_grid.setter('height'))
 
 
 class StoryLibrary(Screen):
     books = NumericProperty(10)
 
-    def __init__(self, *args, **kwargs):
-        super(StoryLibrary, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(StoryLibrary, self).__init__(**kwargs)
 
     def navigate_to_book(self, book):
         main_app.set_selected_story(book.text)
@@ -84,8 +96,8 @@ class StoryBook(Screen):
 
     media_property = ObjectProperty(None)
 
-    def __init__(self, *args, **kwargs):
-        super(StoryBook, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(StoryBook, self).__init__( **kwargs)
 
     def on_pre_enter(self, *args):
         self.assemble_layout()
@@ -179,8 +191,8 @@ class StoryPixiesApp(App):
     libraries = ListProperty([])
     templates = ListProperty([])
 
-    def __init__(self, *args, **kwargs):
-        super(StoryPixiesApp, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(StoryPixiesApp, self).__init__(**kwargs)
         self.set_property_defaults()
 
     def set_property_defaults(self):
@@ -286,6 +298,7 @@ class StoryPixiesApp(App):
         return [l.stem for l in library_list.iterdir() if l.is_dir()]
 
     def get_library(self, num=0):
+        print "Num is: " + str(num)
         if len(self.libraries) > num:
             return self.libraries[num]
         else:
