@@ -53,17 +53,21 @@ class StoryHome(Screen):
         library_grid.bind(minimum_height=library_grid.setter('height'))
 
 
+class StoryBookButton(Button):
+    pass
+
+
 class StoryLibrary(Screen):
     story_title = StringProperty("")
     story_media = StringProperty("")
     displayed_story = NumericProperty(0)
-    max_stories = NumericProperty(1)
 
     def __init__(self, **kwargs):
         super(StoryLibrary, self).__init__(**kwargs)
         self.displayed_story = 0
-        self.max_stories = 1
 
+        #self.story_title = main_app.get_story_title(story=main_app.stories[self.displayed_story])
+        #self.story_media = main_app.get_story_media(page='title', story=main_app.stories[self.displayed_story])
 
 
 class StoryCreator(Screen):
@@ -159,8 +163,8 @@ class CustomData(BoxLayout):
 
 
 class StoryPixiesApp(App):
-    selected_library = StringProperty("default")
-    selected_story = StringProperty("default")
+    selected_library = StringProperty("")
+    selected_story = StringProperty("")
     template_config = ObjectProperty(None)
     story_config = ObjectProperty(None)
     current_page = StringProperty("title")
@@ -169,37 +173,36 @@ class StoryPixiesApp(App):
     libraries = ListProperty([])
     templates = ListProperty([])
     stories = ListProperty([])
-    selected_story_no = NumericProperty(0)
-
 
     def __init__(self, **kwargs):
         super(StoryPixiesApp, self).__init__(**kwargs)
         self.set_property_defaults()
-        self.selected_library = self.libraries[0]
-        self.stories = self.get_stories(self.selected_library)
-        self.selected_story_no = 0
+        self.libraries = self.get_libraries()
+        print "Libraries"
+        print self.libraries
+        self.set_selected_library(self.libraries[0])
 
     def set_property_defaults(self):
-        self.selected_library = "default"
-        self.selected_story = "default"
-        self.selected_story_no = 0
         self.template_config = ConfigParser()
         self.story_config = ConfigParser()
         self.current_page = "title"
         self.current_page_no = 0
         self.current_pages = []
-        self.libraries = self.get_libraries()
         self.templates = self.get_templates()
 
     def set_selected_library(self, library, force=False):
         if library not in self.libraries:
+            print "Could not find library {}".format(library)
             return
 
         if self.selected_library == library:
+            print "Library already selected {}".format(library)
             return
 
         self.set_property_defaults()
         self.selected_library = library
+        self.stories = self.get_stories()
+        self.set_selected_story(self.stories[0])
 
     def set_selected_story(self, book, force=False):
         if book == self.selected_story and not force:
@@ -230,12 +233,6 @@ class StoryPixiesApp(App):
         # Set the pages in the story
         pages = template_config.get('title', 'pages')
         self.current_pages = ['title'] + [x.strip() for x in pages.split(',')]
-
-    def next_story(self):
-        self.selected_story = min()
-
-    def prev_story(self):
-        pass
 
     def set_current_page(self, page):
         self.current_page = page
@@ -299,7 +296,11 @@ class StoryPixiesApp(App):
         if library is None:
             library = self.selected_library
 
-        story_list = (Path(__file__).parents[0].absolute() / "libraries" / library)
+        try:
+            story_list = (Path(__file__).parents[0].absolute() / "libraries" / library)
+        except Exception:
+            return []
+
         return [s.stem for s in story_list.iterdir() if s.is_file()]
 
     def get_story_media(self, page=None, story=None, library=None):

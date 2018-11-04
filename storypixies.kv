@@ -1,6 +1,7 @@
 #:kivy 1.10.1
 #: import FadeTransition kivy.uix.screenmanager.FadeTransition
 #: import win kivy.core.window
+#: import SimpleTableLayout kivy.garden.SimpleTableLayout
 <StoryBase>:
     BoxLayout:
         orientation: "vertical"
@@ -124,52 +125,68 @@
 
 
 
-<StoryBookButton@Button>:
-    selected_story: app.selected_story
-    font_size: 30
-    bold: True
-    outline_width: 10
-    italic: True
-    height: 200
-    size_hint_y: None
-    size_hint_x: 0.5
-    outline_color: (0,0,0,0)
-    on_press: app.set_selected_story(self.text)
-    on_release:
-        if app.selected_story == self.text: \
-        self.parent.manager.current = 'story_book'
+
+
+
 
 <StoryLibrary>:
     name: 'story_library'
     selected_story: app.selected_story
-
+    stories: app.stories
     BoxLayout:
-        ScrollView:
-            bar_width: 0
-            id: storybook_scroll_view
-            size_hint_x: 1
-            size_hint_y: None
-            size: (win.Window.width,win.Window.height)
-            GridLayout:
-                id: story_grid
-                manager: root.manager
-                cols: 3
-                size_hint_y: None
-                size_hint_x: 1
-                spacing: 10
-                padding: 10
-                scroll_y: story_slider.value
-                on_touch_move: story_slider.value = self.scroll_y
+        size_hint_y: None
 
-        Slider:
-            size_hint_x: None
-            width: root.width * 0.2
-            id: story_slider
-            min: 0
-            max: 1
-            orientation: 'vertical'
-            value: storybook_scroll_view.scroll_y
-            on_value: storybook_scroll_view.scroll_y = self.value
+    SimpleTableLayout:
+        manager: root.manager
+        id: story_layout
+        cols: 4
+        rows: 8
+
+        Button:
+            text: 'Back'
+            bold: True
+            on_press: story_button.text = root.get_prev_story()
+            on_release: story_button_image.source = app.get_story_media('title', story_button.text)
+            background_normal: 'images/backgrounds/button.png'
+
+        Label:
+            colspan: 2
+            text: story_button.text
+            font_size: 30
+            bold: True
+            outline_width: 10
+            italic: True
+            outline_color: (0,0,0,0)
+
+        Button:
+            text: 'Next'
+            on_press: story_button.text = root.get_next_story()
+            on_release: story_button_image.source = app.get_story_media('title', story_button.text)
+            bold: True
+            background_normal: 'images/backgrounds/button.png'
+
+        Button:
+            id: story_button
+            text: 'Taking a Trip'
+            colspan: 4
+            rowspan: 7
+            selected_story: app.selected_story
+            size_hint_y: None
+            size_hint_x: 1
+            font_size: 0
+            on_press: app.set_selected_story(self.text)
+            on_release:
+                if app.selected_story == self.text: \
+                self.parent.manager.current = 'story_book'
+            background_normal: 'images/backgrounds/button.png'
+
+            Image:
+                id: story_button_image
+                source: 'images/mushroom-table.jpg'
+                pos: story_button.pos
+                size: story_button.size
+                allow_stretch: True
+                keep_ratio: True
 
 
 
