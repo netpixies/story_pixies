@@ -29,44 +29,36 @@ class LibraryOptions(SettingOptions):
 
 
 class LibrarySettings(SettingsWithTabbedPanel):
-    def __init__(self, *args, **kwargs):
-        super(LibrarySettings, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(LibrarySettings, self).__init__(**kwargs)
         self.register_type('library_options', LibraryOptions)
 
 
+class LibraryButton(Button):
+    pass
+
+
 class StoryHome(Screen):
-    def __init__(self, *args, **kwargs):
-        super(StoryHome, self).__init__(*args, **kwargs)
 
-    def navigate_to_library(self, instance):
-        main_app.set_selected_library(instance.text)
-        self.manager.current = 'story_library'
+    def __init__(self, **kwargs):
+        super(StoryHome, self).__init__(**kwargs)
 
-    def get_background(self):
-        return "images/backgrounds/" + str(randint(1,4)) + ".png"
 
     def on_enter(self, *args):
-        topscreen = self.ids.story_home_id
-        topscreen.clear_widgets()
-        topgrid = GridLayout(cols=2, spacing='2dp')
-        topscreen.add_widget(topgrid)
+        library_grid = self.ids.library_grid
         for i in self.libraries:
-            b = Button(text=i,
-                       background_normal=self.get_background(),
-                       font_size=60,
-                       bold=True,
-                       outline_width=10,
-                       italic=True,
-                       outline_color=(0,0,0,0))
-            b.bind(on_release=self.navigate_to_library)
-            topgrid.add_widget(b)
+            print "Library is: " + main_app.get_library(i)
+            b = LibraryButton(text=i)
+            library_grid.add_widget(b)
+
+        library_grid.bind(minimum_height=library_grid.setter('height'))
 
 
 class StoryLibrary(Screen):
     books = NumericProperty(10)
 
-    def __init__(self, *args, **kwargs):
-        super(StoryLibrary, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(StoryLibrary, self).__init__(**kwargs)
 
     def navigate_to_book(self, book):
         main_app.set_selected_story(book.text)
@@ -104,8 +96,8 @@ class StoryBook(Screen):
 
     media_property = ObjectProperty(None)
 
-    def __init__(self, *args, **kwargs):
-        super(StoryBook, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(StoryBook, self).__init__( **kwargs)
 
     def on_pre_enter(self, *args):
         self.assemble_layout()
@@ -196,12 +188,12 @@ class StoryPixiesApp(App):
     current_page = StringProperty("title")
     current_page_no = NumericProperty(0)
     current_pages = ListProperty([])
+    libraries = ListProperty([])
+    templates = ListProperty([])
 
-    def __init__(self, *args, **kwargs):
-        super(StoryPixiesApp, self).__init__(*args, **kwargs)
-        # Finds all files in libraries subdir ending with .ini
-        self.libraries = self.get_libraries()
-        self.templates = self.get_templates()
+    def __init__(self, **kwargs):
+        super(StoryPixiesApp, self).__init__(**kwargs)
+        self.set_property_defaults()
 
     def set_property_defaults(self):
         self.selected_library = "default"
@@ -211,10 +203,14 @@ class StoryPixiesApp(App):
         self.current_page = "title"
         self.current_page_no = 0
         self.current_pages = []
+        self.libraries = self.get_libraries()
+        self.templates = self.get_templates()
 
     def set_selected_library(self, library, force=False):
+        if library not in self.libraries:
+            return
+
         if self.selected_library == library:
-            print "Not updating library without force flag."
             return
 
         self.set_property_defaults()
@@ -287,6 +283,11 @@ class StoryPixiesApp(App):
         print config, section, key, value
 
     @staticmethod
+    def get_library_background(library_num=None):
+        if library_num is None:
+            return "images/backgrounds/" + str(randint(1,4)) + ".png"
+
+    @staticmethod
     def get_templates():
         template_list = (Path(__file__).parents[0].absolute() / "templates")
         return [t.stem for t in template_list.iterdir() if t.is_file()]
@@ -295,6 +296,13 @@ class StoryPixiesApp(App):
     def get_libraries():
         library_list = (Path(__file__).parents[0].absolute() / "libraries")
         return [l.stem for l in library_list.iterdir() if l.is_dir()]
+
+    def get_library(self, num=0):
+        print "Num is: " + str(num)
+        if len(self.libraries) > num:
+            return self.libraries[num]
+        else:
+            return ""
 
     def get_stories(self, library=None):
         if library is None:
