@@ -89,19 +89,31 @@
     BoxLayout:
         id: story_home_id
         ScrollView:
+            bar_width: 0
+            id: library_scroll_view
             size_hint_x: 1
             size_hint_y: None
             size: (win.Window.width,win.Window.height)
             GridLayout:
                 id: library_grid
                 manager: root.manager
-                cols: 2
+                cols: 1
                 size_hint_y: None
                 size_hint_x: 1
                 spacing: 10
                 padding: 10
+                scroll_y: slider.value
+                on_touch_move: slider.value = self.scroll_y
 
-
+        Slider:
+            size_hint_x: None
+            width: root.width*0.2
+            id: slider
+            min: 0
+            max: 1
+            orientation: 'vertical'
+            value: library_scroll_view.scroll_y
+            on_value: library_scroll_view.scroll_y = self.value
 
 
 <StoryCreator>:
