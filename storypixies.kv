@@ -64,6 +64,21 @@
         bold: True
 
 
+<LibraryButton@Button>:
+    libraries: app.libraries
+    selected_library: app.selected_library
+    background_normal: app.get_library_background()
+    font_size: 60
+    bold: True
+    outline_width: 10
+    italic: True
+    outline_color: (0,0,0,0)
+    on_press: app.set_selected_library(self.text)
+    on_release:
+        if app.selected_library == self.text: \
+        self.parent.manager.current = 'story_library'
+
+
 <StoryHome>:
     name: 'story_home'
     libraries: app.libraries
@@ -71,6 +86,35 @@
 
     BoxLayout:
         id: story_home_id
+
+        GridLayout:
+            manager: root.manager
+            cols: 2
+            spacing: '2dp'
+
+            LibraryButton:
+                text: app.get_library(0)
+
+            LibraryButton:
+                text: app.get_library(1)
+
+            LibraryButton:
+                text: app.get_library(2)
+
+            LibraryButton:
+                text: app.get_library(3)
+
+            LibraryButton:
+                text: app.get_library(4)
+
+            LibraryButton:
+                text: app.get_library(5)
+
+            LibraryButton:
+                text: app.get_library(6)
+
+            LibraryButton:
+                text: app.get_library(7)
 
 
 <StoryCreator>:
