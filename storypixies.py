@@ -35,7 +35,11 @@ class LibrarySettings(SettingsWithTabbedPanel):
 
 
 class StoryHome(Screen):
-    pass
+    layout_content = ObjectProperty(None)
+
+    def __init__(self, *args, **kwargs):
+        super(StoryHome, self).__init__(*args, **kwargs)
+        self.layout_content.bind(minimum_height=self.layout_content.setter('height'))
 
 
 class StoryLibrary(Screen):

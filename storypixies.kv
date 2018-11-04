@@ -83,38 +83,42 @@
     name: 'story_home'
     libraries: app.libraries
     selected_library: app.selected_library
+    layout_content: layout_content
 
     BoxLayout:
         id: story_home_id
+        ScrollView:
+            size: self.size
+            GridLayout:
+                id: layout_content
+                manager: root.manager
+                cols: 2
+                size_hint_y: None
+                spacing: '2dp'
 
-        GridLayout:
-            manager: root.manager
-            cols: 2
-            spacing: '2dp'
+                LibraryButton:
+                    text: app.get_library(0)
 
-            LibraryButton:
-                text: app.get_library(0)
+                LibraryButton:
+                    text: app.get_library(1)
 
-            LibraryButton:
-                text: app.get_library(1)
+                LibraryButton:
+                    text: app.get_library(2)
 
-            LibraryButton:
-                text: app.get_library(2)
+                LibraryButton:
+                    text: app.get_library(3)
 
-            LibraryButton:
-                text: app.get_library(3)
+                LibraryButton:
+                    text: app.get_library(4)
 
-            LibraryButton:
-                text: app.get_library(4)
+                LibraryButton:
+                    text: app.get_library(5)
 
-            LibraryButton:
-                text: app.get_library(5)
+                LibraryButton:
+                    text: app.get_library(6)
 
-            LibraryButton:
-                text: app.get_library(6)
-
-            LibraryButton:
-                text: app.get_library(7)
+                LibraryButton:
+                    text: app.get_library(7)
 
 
 <StoryCreator>:
