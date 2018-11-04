@@ -126,12 +126,13 @@
 
 <StoryBookButton@Button>:
     selected_story: app.selected_story
-    font_size: 60
+    font_size: 30
     bold: True
     outline_width: 10
     italic: True
     height: 200
     size_hint_y: None
+    size_hint_x: 0.5
     outline_color: (0,0,0,0)
     on_press: app.set_selected_story(self.text)
     on_release:
@@ -140,21 +141,19 @@
 
 <StoryLibrary>:
     name: 'story_library'
-    selected_library: app.selected_library
     selected_story: app.selected_story
 
     BoxLayout:
-        id: story_lib
         ScrollView:
             bar_width: 0
-            id: story_scroll_view
+            id: storybook_scroll_view
             size_hint_x: 1
             size_hint_y: None
             size: (win.Window.width,win.Window.height)
             GridLayout:
                 id: story_grid
-                cols: 4
-                spacing: 5
+                manager: root.manager
+                cols: 3
                 size_hint_y: None
                 size_hint_x: 1
                 spacing: 10
@@ -164,13 +163,15 @@
 
         Slider:
             size_hint_x: None
-            width: root.width*0.2
+            width: root.width * 0.2
             id: story_slider
             min: 0
             max: 1
             orientation: 'vertical'
-            value: story_scroll_view.scroll_y
-            on_value: story_scroll_view.scroll_y = self.value
+            value: storybook_scroll_view.scroll_y
+            on_value: storybook_scroll_view.scroll_y = self.value
+
+
 
 <StoryTemplate>:
     name: 'story_template'

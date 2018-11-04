@@ -15,6 +15,7 @@ from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from random import randint
+from kivy.uix.carousel import Carousel
 
 kivy.require('1.10.1')
 
@@ -44,30 +45,38 @@ class StoryHome(Screen):
 
     def on_enter(self, *args):
         library_grid = self.ids.library_grid
+        library_grid.clear_widgets()
         for i in self.libraries:
-            print "Library is: " + main_app.get_library(i)
             b = LibraryButton(text=i)
             library_grid.add_widget(b)
 
         library_grid.bind(minimum_height=library_grid.setter('height'))
 
 
-class StoryButton(Button):
+class StoryBookButton(Button):
     pass
 
 
 class StoryLibrary(Screen):
     books = NumericProperty(10)
+    story_rows = NumericProperty(3)
+    story_cols = NumericProperty(3)
 
     def __init__(self, **kwargs):
         super(StoryLibrary, self).__init__(**kwargs)
 
-    def on_enter(self, *args):
+    def on_pre_enter(self, *args):
         story_grid = self.ids.story_grid
+        story_grid.clear_widgets()
         for story in main_app.get_stories():
             button_media = main_app.get_story_media('title', str(story))
-            b = StoryButton(text=story, background_normal=button_media)
+            b = StoryBookButton(text=story, background_normal=button_media)
             story_grid.add_widget(b)
+
+        #fill_size = max(0, (self.story_rows * self.story_cols) - len(main_app.get_stories()))
+        #for i in range(0, fill_size):
+        #    fill_image = Image(source='images/backgrounds/button.png')
+        #    story_grid.add_widget(fill_image)
 
         story_grid.bind(minimum_height=story_grid.setter('height'))
 
