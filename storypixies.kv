@@ -145,8 +145,8 @@
         Button:
             text: 'Back'
             bold: True
-            on_press: story_button.text = root.get_prev_story()
-            on_release: story_button_image.source = app.get_story_media('title', story_button.text)
+            on_press: story_button.text = app.prev_story()
+            on_release: story_button_image.source = app.get_story_media()
             background_normal: 'images/backgrounds/button.png'
 
         Label:
@@ -160,8 +160,8 @@
 
         Button:
             text: 'Next'
-            on_press: story_button.text = root.get_next_story()
-            on_release: story_button_image.source = app.get_story_media('title', story_button.text)
+            on_press: story_button.text = app.next_story()
+            on_release: story_button_image.source = app.get_story_media()
             bold: True
             background_normal: 'images/backgrounds/button.png'
 
@@ -174,7 +174,6 @@
             size_hint_y: None
             size_hint_x: 1
             font_size: 0
-            on_press: app.set_selected_story(self.text)
             on_release:
                 if app.selected_story == self.text: \
                 self.parent.manager.current = 'story_book'
