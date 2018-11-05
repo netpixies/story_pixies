@@ -163,21 +163,17 @@
 
         Button:
             id: story_button
-            text: 'Taking a Trip'
             colspan: 4
             rowspan: 7
             selected_story: app.selected_story
             size_hint_y: None
             size_hint_x: 1
             font_size: 0
-            on_release:
-                if app.selected_story == self.text: \
-                self.parent.manager.current = 'story_book'
+            on_release: self.parent.manager.current = 'story_book'
             background_normal: 'images/backgrounds/button.png'
 
             Image:
                 id: story_button_image
-                source: 'images/mushroom-table.jpg'
                 pos: story_button.pos
                 size: story_button.size
                 allow_stretch: True
