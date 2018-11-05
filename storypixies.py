@@ -98,14 +98,14 @@ class StoryBook(Screen):
         top_grid.add_widget(story_back_button)
         top_grid.add_widget(story_next_button)
 
-    def prev_page(self):
+    def prev_page(self, instance):
         if self.current_page == 'title':
             self.manager.current = 'story_library'
         else:
             main_app.previous_page()
             self.assemble_layout()
 
-    def next_page(self):
+    def next_page(self, instance):
         page_now = self.current_page_no
         main_app.next_page()
         if page_now == self.current_page_no:
