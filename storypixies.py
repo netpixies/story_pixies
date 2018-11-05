@@ -54,16 +54,13 @@ class StoryHome(Screen):
 
 
 class StoryLibrary(Screen):
-    story_title = StringProperty("")
-    story_media = StringProperty("")
-    displayed_story = NumericProperty(0)
-    max_stories = NumericProperty(1)
 
     def __init__(self, **kwargs):
         super(StoryLibrary, self).__init__(**kwargs)
-        self.displayed_story = 0
-        self.max_stories = 1
 
+    def on_pre_enter(self, *args):
+        self.ids.story_button.text = main_app.get_story_title()
+        self.ids.story_button_image.source = main_app.get_story_media()
 
 class StoryCreator(Screen):
     pass
@@ -314,6 +311,9 @@ class StoryPixiesApp(App):
 
     def get_story_value(self, page, value):
         return self.template_config.get(page, value)
+
+    def get_story_title(self):
+        return self.get_story_value('title', 'name')
 
     def get_story_media(self):
         return self.get_story_value(self.current_page, 'media_location')
