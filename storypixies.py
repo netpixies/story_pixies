@@ -70,11 +70,10 @@ class StoryCreator(Screen):
 
 
 class StoryBook(Screen):
-
     media_property = ObjectProperty(None)
 
     def __init__(self, **kwargs):
-        super(StoryBook, self).__init__( **kwargs)
+        super(StoryBook, self).__init__(**kwargs)
 
     def on_pre_enter(self, *args):
         self.assemble_layout()
@@ -83,33 +82,33 @@ class StoryBook(Screen):
         if self.media_property is not None:
             self.media_property.state = 'stop'
 
-        topgrid = self.ids.story_book_grid
-        topgrid.clear_widgets()
-        d = self.get_story_display(topgrid)
+        top_grid = self.ids.story_book_grid
+        top_grid.clear_widgets()
+        d = self.get_story_display()
         self.media_property = self.get_media_display()
-        back = Button(text="Back",
-                      size_hint_y=0.1,
-                      background_normal='images/backgrounds/button.png',
-                      bold=True)
-        next = Button(text="Next",
-                      size_hint_y=0.1,
-                      background_normal='images/backgrounds/button.png',
-                      bold=True)
-        back.bind(on_release=self.prev_page)
-        next.bind(on_release=self.next_page)
-        topgrid.add_widget(d)
-        topgrid.add_widget(self.media_property)
-        topgrid.add_widget(back)
-        topgrid.add_widget(next)
+        story_back_button = Button(text="Back",
+                                   size_hint_y=0.1,
+                                   background_normal='images/backgrounds/button.png',
+                                   bold=True)
+        story_next_button = Button(text="Next",
+                                   size_hint_y=0.1,
+                                   background_normal='images/backgrounds/button.png',
+                                   bold=True)
+        story_back_button.bind(on_release=self.prev_page)
+        story_next_button.bind(on_release=self.next_page)
+        top_grid.add_widget(d)
+        top_grid.add_widget(self.media_property)
+        top_grid.add_widget(story_back_button)
+        top_grid.add_widget(story_next_button)
 
-    def prev_page(self, instance):
+    def prev_page(self):
         if self.current_page == 'title':
             self.manager.current = 'story_library'
         else:
             main_app.previous_page()
             self.assemble_layout()
 
-    def next_page(self, instance):
+    def next_page(self):
         page_now = self.current_page_no
         main_app.next_page()
         if page_now == self.current_page_no:
@@ -117,24 +116,25 @@ class StoryBook(Screen):
         else:
             self.assemble_layout()
 
-    def get_story_display(self, topgrid):
-        l = Label(text=main_app.get_story_text(),
-                  text_size=(None,None),
-                  font_size="20sp",
-                  pos_hint={'center_x':0.5, 'center_y': 100.85},
-                  size_hint_y=1,
-                  halign="center",
-                  valign="middle")
+    @staticmethod
+    def get_story_display():
+        story_text_label = Label(text=main_app.get_story_text(),
+                                 text_size=(None, None),
+                                 font_size="20sp",
+                                 pos_hint={'center_x': 0.5, 'center_y': 100.85},
+                                 size_hint_y=1,
+                                 halign="center",
+                                 valign="middle")
 
-
-        return l
+        return story_text_label
 
     def get_media_display(self):
         media_type = main_app.get_story_media_type()
         if media_type == 'image':
             return Image(source=main_app.get_story_media(), allow_stretch=False, keep_ratio=True)
         elif media_type == 'video':
-            return VideoPlayer(id=self.current_page + 'video', source=main_app.get_story_media(), state='play', options={'allow_stretch': True, 'keep_ratio': True})
+            return VideoPlayer(id=self.current_page + 'video', source=main_app.get_story_media(), state='play',
+                               options={'allow_stretch': True, 'keep_ratio': True})
 
 
 class StoryBase(BoxLayout):
@@ -159,9 +159,9 @@ class CustomData(BoxLayout):
 
 class StoryPixiesApp(App):
     selected_library = StringProperty(None)
-    libraries = ListProperty([])
+    libraries = ListProperty()
 
-    stories = ListProperty([])
+    stories = ListProperty()
     selected_story_no = NumericProperty(0)
     selected_story = StringProperty(None)
 
@@ -169,7 +169,7 @@ class StoryPixiesApp(App):
 
     current_page = StringProperty("title")
     current_page_no = NumericProperty(0)
-    current_pages = ListProperty([])
+    current_pages = ListProperty()
 
     def __init__(self, **kwargs):
         """
@@ -267,14 +267,14 @@ class StoryPixiesApp(App):
         """
         Updates the current page to be the next page
         """
-        self.current_page_no = min(self.current_page_no + 1, len(self.current_pages)- 1)
+        self.current_page_no = min(self.current_page_no + 1, len(self.current_pages) - 1)
         self.current_page = self.current_pages[self.current_page_no]
 
     def previous_page(self):
         """
         Updates the current page to be the previous page
         """
-        self.current_page_no = min(self.current_page_no - 1, len(self.current_pages)-1)
+        self.current_page_no = min(self.current_page_no - 1, len(self.current_pages) - 1)
         self.current_page = self.current_pages[self.current_page_no]
 
     def build(self):
@@ -289,7 +289,7 @@ class StoryPixiesApp(App):
             config.setdefaults(library, {
                 'name': library,
                 'story_dir': Path(__file__).parents[0].absolute() / "libraries" / library,
-                'current_book' : ''
+                'current_book': ''
             })
 
     def build_settings(self, settings):
