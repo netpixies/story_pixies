@@ -45,6 +45,7 @@
             StorySettings:
             StoryBook:
 
+
 <StoryFront>:
     title: "Welcome to Story Pixies!"
     Button:
@@ -124,11 +125,6 @@
             text: 'Story Creator'
 
 
-
-
-
-
-
 <StoryLibrary>:
     name: 'story_library'
     selected_story: app.selected_story
@@ -194,13 +190,13 @@
     BoxLayout:
         id: story_template
 
+
 <StoryBook>:
     name: 'story_book'
     id: story_book
     selected_library: app.selected_library
     selected_story: app.selected_story
     template_config: app.template_config
-    story_config: app.story_config
     current_page: app.current_page
     current_page_no: app.current_page_no
 
@@ -210,11 +206,11 @@
         spacing: '8dp'
 
 
-
 <CustomData>:
     name: 'custom_data'
     BoxLayout:
         id: custom_data_box
+
 
 <StorySettings>:
     name: 'story_settings'
@@ -230,4 +226,3 @@
         Button:
             text: 'Settings'
             on_release: app.open_settings()
-

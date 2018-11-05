@@ -166,7 +166,6 @@ class StoryPixiesApp(App):
     selected_story = StringProperty(None)
 
     template_config = ObjectProperty(None)
-    story_config = ObjectProperty(None)
 
     current_page = StringProperty("title")
     current_page_no = NumericProperty(0)
@@ -180,7 +179,8 @@ class StoryPixiesApp(App):
         :param kwargs:
         """
         super(StoryPixiesApp, self).__init__(**kwargs)
-        self.set_property_defaults()
+        self.libraries = self.get_libraries()
+
         self.selected_library = self.libraries[0]
 
     def set_property_defaults(self):
@@ -189,71 +189,92 @@ class StoryPixiesApp(App):
         """
         self.selected_story_no = 0
         self.template_config = ConfigParser()
-        self.story_config = ConfigParser()
         self.current_page = "title"
         self.current_page_no = 0
         self.current_pages = []
-        self.libraries = self.get_libraries()
 
     def set_selected_library(self, library):
-        if library not in self.libraries:
-            print "Library {} not found!".format(library)
-            return
+        """
+        Resets the defaults.
+        Stores passed library as selected.
+        Gets stories for this library.
+        Sets selected story to the first.
+        :param library: the library to set as current
+        """
+        if library in self.libraries:
+            self.set_property_defaults()
+            self.selected_library = library
+            self.stories = self.get_stories(self.selected_library)
+            self.set_selected_story(0)
 
-        self.set_property_defaults()
-        self.selected_library = library
-        self.stories = self.get_stories(self.selected_library)
-        self.set_selected_story(0)
-
-    def set_selected_story(self, num, force=False):
+    def set_selected_story(self, num):
+        """
+        Mods passed number so it wraps selected story num.
+        Sets the selected story and story number.
+        Sets the current page to the title page.
+        Sets the current page number to 0.
+        Parses configs using template and library.
+        Sets current pages.
+        :param num:
+        :return: Returns name of selected story.
+        """
         num %= len(self.stories)
-        book = self.stories[num]
-        if book == self.selected_story and not force:
-            print "Not updating story without force flag."
-            return
 
-        self.selected_story = book
+        self.selected_story = self.stories[num]
         self.selected_story_no = num
         self.current_page = "title"
         self.current_page_no = 0
+        self.parse_story_configs()
 
+        # Set the pages in the story
+        pages = self.template_config.get('title', 'pages')
+        self.current_pages = ['title'] + [x.strip() for x in pages.split(',')]
+        return self.template_config.get('title', 'name')
+
+    def parse_story_configs(self):
+        """
+        Parses story configs based on its template. It will interpolate individual
+        story defaults into templatized config.
+        """
         # Get individual story defaults
         story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.selected_library)
         story_config = ConfigParser()
         story_config.read(str(story_dir) + '/' + self.selected_story + '.ini')
-        self.story_config = story_config
 
         # Get templatized values
         template_dir = self.config.get('global', 'template_dir')
-        template_config = ConfigParser()
+        self.template_config = ConfigParser()
 
         # Interpolate individual story defaults into templatized config
-        template_config.setall('DEFAULT', dict(self.story_config.items('values')))
-        template_config.read(template_dir + '/' + self.selected_story + '.ini')
-
-        # Set updated config as the current config
-        self.template_config = template_config
-
-        # Set the pages in the story
-        pages = template_config.get('title', 'pages')
-        self.current_pages = ['title'] + [x.strip() for x in pages.split(',')]
-        return self.template_config.get('title', 'name')
+        self.template_config.setall('DEFAULT', dict(story_config.items('values')))
+        self.template_config.read(template_dir + '/' + self.selected_story + '.ini')
 
     def next_story(self):
-        print self.selected_story_no
+        """
+        Updates the selected story to be the next one.
+        :return: The name of the story
+        """
         return self.set_selected_story(self.selected_story_no + 1)
 
     def prev_story(self):
+        """
+        Updates the selected story to be the previous one.
+        :return: The name of the story
+        """
         return self.set_selected_story(self.selected_story_no - 1)
 
     def next_page(self):
+        """
+        Updates the current page to be the next page
+        """
         self.current_page_no = min(self.current_page_no + 1, len(self.current_pages)- 1)
         self.current_page = self.current_pages[self.current_page_no]
 
     def previous_page(self):
-        new_page = min(self.current_page_no - 1, len(self.current_pages)-1)
-
-        self.current_page_no = new_page
+        """
+        Updates the current page to be the previous page
+        """
+        self.current_page_no = min(self.current_page_no - 1, len(self.current_pages)-1)
         self.current_page = self.current_pages[self.current_page_no]
 
     def build(self):
@@ -291,27 +312,17 @@ class StoryPixiesApp(App):
         story_list = (Path(__file__).parents[0].absolute() / "libraries" / library)
         return [s.stem for s in story_list.iterdir() if s.is_file()]
 
-    def get_story_media(self):
+    def get_story_value(self, page, value):
+        return self.template_config.get(page, value)
 
-        #if story is not None:
-        #    story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.selected_library)
-        #    story_config = ConfigParser()
-        #    story_config.read(str(story_dir) + '/' + story + '.ini')
-        #    return story_config.get('values', '_title_media_location')
-        #else:
-        #   print "media" + self.template_config.get(self.current_page, 'media_location')
-        return self.template_config.get(self.current_page, 'media_location')
+    def get_story_media(self):
+        return self.get_story_value(self.current_page, 'media_location')
 
     def get_story_media_type(self):
-        if self.template_config is None:
-            return 'images/background.png'
-        else:
-            return self.template_config.get(self.current_page, 'media')
+        return self.get_story_value(self.current_page, 'media')
 
     def get_story_text(self):
-        print "current page: " + self.current_page
-        print "current page no: " + str(self.current_page_no)
-        return self.template_config.get(self.current_page, 'text')
+        return self.get_story_value(self.current_page, 'text')
 
 
 if __name__ == '__main__':
