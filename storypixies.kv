@@ -1,6 +1,7 @@
 #:kivy 1.10.1
 #: import FadeTransition kivy.uix.screenmanager.FadeTransition
 #: import win kivy.core.window
+#: import SimpleTableLayout kivy.garden.SimpleTableLayout
 <StoryBase>:
     BoxLayout:
         orientation: "vertical"
@@ -43,6 +44,7 @@
             StoryCreator:
             StorySettings:
             StoryBook:
+
 
 <StoryFront>:
     title: "Welcome to Story Pixies!"
@@ -123,14 +125,64 @@
             text: 'Story Creator'
 
 
-
 <StoryLibrary>:
     name: 'story_library'
-    selected_library: app.selected_library
     selected_story: app.selected_story
-
+    stories: app.stories
     BoxLayout:
-        id: story_lib
+        size_hint_y: None
+
+    SimpleTableLayout:
+        manager: root.manager
+        id: story_layout
+        cols: 4
+        rows: 8
+
+        Button:
+            text: 'Back'
+            bold: True
+            on_press: story_button.text = app.prev_story()
+            on_release: story_button_image.source = app.get_story_media()
+            background_normal: 'images/backgrounds/button.png'
+
+        Label:
+            colspan: 2
+            text: story_button.text
+            font_size: 30
+            bold: True
+            outline_width: 10
+            italic: True
+            outline_color: (0,0,0,0)
+
+        Button:
+            text: 'Next'
+            on_press: story_button.text = app.next_story()
+            on_release: story_button_image.source = app.get_story_media()
+            bold: True
+            background_normal: 'images/backgrounds/button.png'
+
+        Button:
+            id: story_button
+            text: 'Taking a Trip'
+            colspan: 4
+            rowspan: 7
+            selected_story: app.selected_story
+            size_hint_y: None
+            size_hint_x: 1
+            font_size: 0
+            on_release:
+                if app.selected_story == self.text: \
+                self.parent.manager.current = 'story_book'
+            background_normal: 'images/backgrounds/button.png'
+
+            Image:
+                id: story_button_image
+                source: 'images/mushroom-table.jpg'
+                pos: story_button.pos
+                size: story_button.size
+                allow_stretch: True
+                keep_ratio: True
+
 
 
 <StoryTemplate>:
@@ -138,13 +190,13 @@
     BoxLayout:
         id: story_template
 
+
 <StoryBook>:
     name: 'story_book'
     id: story_book
     selected_library: app.selected_library
     selected_story: app.selected_story
     template_config: app.template_config
-    story_config: app.story_config
     current_page: app.current_page
     current_page_no: app.current_page_no
 
@@ -154,11 +206,11 @@
         spacing: '8dp'
 
 
-
 <CustomData>:
     name: 'custom_data'
     BoxLayout:
         id: custom_data_box
+
 
 <StorySettings>:
     name: 'story_settings'
@@ -174,4 +226,3 @@
         Button:
             text: 'Settings'
             on_release: app.open_settings()
-
