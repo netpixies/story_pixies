@@ -8,3 +8,5 @@ themes/*
 image-maybes/*
 video-maybes/*
 docs/Recording*
+templates/Test*
+libraries/*/Test*
