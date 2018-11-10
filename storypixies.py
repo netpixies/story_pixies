@@ -36,7 +36,7 @@ class Home(Screen):
 
         library_grid = self.ids.library_grid
         library_grid.clear_widgets()
-        for i in self.libraries:
+        for i in self.libraries.keys():
             b = LibraryButton(text=i)
             library_grid.add_widget(b)
 
@@ -56,10 +56,10 @@ class Library(Screen):
         reason, multiple toggle buttons wind up selected.
         """
         print "Entering library, shhhh!"
-    #    print "Pre enter"
-    #    self.ids.story_button.text = self.main_app.get_story_title()
-    #    self.ids.story_button_image.source = self.main_app.get_story_media()
-    #    print self.ids.story_button.text
+        #    print "Pre enter"
+        #    self.ids.story_button.text = self.main_app.get_story_title()
+        #    self.ids.story_button_image.source = self.main_app.get_story_media()
+        #    print self.ids.story_button.text
         self.app.menu.homebutton.state = 'normal'
         self.app.menu.creatorbutton.state = 'normal'
         self.app.menu.storybutton.state = 'normal'
@@ -82,6 +82,7 @@ class SingleLibrary(Button):
         super(SingleLibrary, self).__init__(**kwargs)
         self.name = kwargs['name']
         self.location = kwargs['location']
+        self.template_dir = kwargs['template_dir']
         self.stories = []
         self.current_story = 0
         self.add_stories()
@@ -90,10 +91,12 @@ class SingleLibrary(Button):
         i = 0
         for story in self.location.iterdir():
             if story.is_file():
-                self.stories.append(StoryBook(library=self.name,
-                                              title=story.stem,
-                                              location=story,
-                                              number=i))
+                new_story = StoryBook(library=self.name,
+                                      title=story.stem,
+                                      location=story,
+                                      number=i)
+                new_story.load_story_config(self.template_dir)
+                self.stories.append(new_story)
             i += 1
 
     def set_current_story(self, num):
@@ -102,22 +105,32 @@ class SingleLibrary(Button):
         :param num: The story number to set
         :return: Return the same number
         """
+        num %= len(self.stories)
         self.current_story = num
         return num
+
+    def get_story(self, num=None):
+        if num is None:
+            return self.stories[self.current_story]
+        else:
+            num %= len(self.stories)
+            return self.stories[num]
 
     def next_story(self):
         """
         Updates the selected story to be the next one.
         :return: The name of the story
         """
-        return self.set_current_story(self.selected_story_no + 1)
+        num = self.set_current_story(self.current_story + 1)
+        return self.stories[num].title
 
     def prev_story(self):
         """
         Updates the selected story to be the previous one.
         :return: The name of the story
         """
-        return self.set_current_story(self.selected_story_no - 1)
+        num = self.set_current_story(self.current_story - 1)
+        return self.stories[num].title
 
 
 class Story(Screen):
@@ -183,11 +196,9 @@ class StoryBook(GridLayout):
         self.current_page_no = 0
         self.pages = []
 
-    def build(self):
+    def load_story_config(self, template_dir):
         self.story_config = ConfigParser()
-        self.load_story_config()
 
-    def load_story_config(self):
         story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.library_parent)
         tmp_config = ConfigParser()
         tmp_config.read(str(story_dir) + '/' + self.title + '.ini')
@@ -198,13 +209,13 @@ class StoryBook(GridLayout):
         if not self.template.endswith('.ini'):
             self.template = self.template + '.ini'
 
-        template_location = self.app.template_dir + '/' + self.template
+        template_location = template_dir.joinpath(self.template)
 
         # Set defaults from story .ini file
         self.story_config.setall('DEFAULT', dict(tmp_config.items('values')))
 
         # Set config from story's template. Values will be interpolated from above DEFAULT.
-        self.story_config.read(template_location)
+        self.story_config.read(str(template_location))
 
         # Find the media type (image, video) for this story's title page
         self.title_media = self.story_config.get('title', 'media')
@@ -255,6 +266,7 @@ class Creator(Screen):
         self.app.menu.storybutton.state = 'normal'
         self.app.menu.librarybutton.state = 'normal'
 
+
 class StoryPixiesApp(App):
     manager = ObjectProperty(None)
     home = ObjectProperty(None)
@@ -291,12 +303,20 @@ class StoryPixiesApp(App):
 
         for library in self.library_dir.iterdir():
             print "Adding library {}".format(library.stem)
-            self.libraries[library.stem] = SingleLibrary(name=library.stem, location=library)
+            self.libraries[library.stem] = SingleLibrary(name=library.stem,
+                                                         location=library,
+                                                         template_dir=self.template_dir)
 
         if len(self.libraries.keys()) == 0:
             self.set_selected_library(None)
         else:
             self.set_selected_library(self.libraries.keys()[0])
+
+    def get_library_object(self, library=None):
+        if library is None:
+            return self.libraries.get(self.selected_library)
+        else:
+            return self.libraries.get(library)
 
     def set_selected_library(self, library=None):
         """

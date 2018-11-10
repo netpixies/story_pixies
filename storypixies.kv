@@ -92,6 +92,55 @@
     id: library_grid
     app: app
 
+    BoxLayout:
+        size_hint_y: None
+
+    SimpleTableLayout:
+        id: story_layout
+        cols: 4
+        rows: 8
+
+    Button:
+        text: 'Back'
+        bold: True
+        on_press: story_button.text = app.get_library_object().prev_story()
+        on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
+        background_normal: 'images/backgrounds/button.png'
+
+    Label:
+        colspan: 2
+        text: story_button.text
+        font_size: 30
+        bold: True
+        outline_width: 10
+        italic: True
+        outline_color: (0,0,0,0)
+
+    Button:
+        text: 'Next'
+        on_press: story_button.text = app.get_library_object().next_story()
+        on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
+        bold: True
+        background_normal: 'images/backgrounds/button.png'
+
+    Button:
+        id: story_button
+        colspan: 4
+        rowspan: 7
+        selected_story: app.selected_story
+        size_hint_y: None
+        size_hint_x: 1
+        font_size: 0
+        on_release: app.story_screen()
+        background_normal: 'images/backgrounds/button.png'
+
+        Image:
+            id: story_button_image
+            pos: story_button.pos
+            size: story_button.size
+            allow_stretch: True
+            keep_ratio: True
+
 <SingleLibrary>:
     app: app
 
