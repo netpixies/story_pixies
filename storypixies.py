@@ -47,6 +47,7 @@ class Home(Screen):
             self.app.menu.creatorbutton.state = 'normal'
             self.app.menu.librarybutton.state = 'normal'
 
+
 class Library(Screen):
 
     def on_pre_enter(self):
@@ -62,6 +63,7 @@ class Library(Screen):
         self.app.menu.homebutton.state = 'normal'
         self.app.menu.creatorbutton.state = 'normal'
         self.app.menu.storybutton.state = 'normal'
+
 
 class SingleLibrary(Button):
     # Path object of the library directory
@@ -181,7 +183,9 @@ class StoryBook(GridLayout):
         self.current_page_no = 0
         self.pages = []
 
+    def build(self):
         self.story_config = ConfigParser()
+        self.load_story_config()
 
     def load_story_config(self):
         story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.library_parent)
