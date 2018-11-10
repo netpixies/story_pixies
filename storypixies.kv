@@ -50,11 +50,12 @@
     size_hint_y: None
     outline_color: (0,0,0,0)
     on_press: app.set_selected_library(self.text)
-    on_release: app.story_screen(self)
+    on_release: app.library_screen(self)
 
 <Home>:
     id: home_screen
     libraries: app.libraries
+    app: app
 
     GridLayout:
         id: home_grid
@@ -89,13 +90,12 @@
 
 <Library>:
     id: library_grid
+    app: app
 
 <Story>:
     id: story_grid
-    on_pre_enter:
-        app.menu.homebutton.state = 'normal'
-        app.menu.creatorbutton.state = 'normal'
-        app.menu.librarybutton.state = 'normal'
+    app: app
 
 <Creator>:
     id: creator_grid
+    app: app
