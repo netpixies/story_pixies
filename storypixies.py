@@ -31,7 +31,7 @@ class Home(Screen):
     def __init__(self, **kwargs):
         super(Home, self).__init__(**kwargs)
 
-    def on_pre_enter(self, *args):
+    def on_enter(self, *args):
         print "Welcome home!"
 
         library_grid = self.ids.library_grid
@@ -56,10 +56,8 @@ class Library(Screen):
         reason, multiple toggle buttons wind up selected.
         """
         print "Entering library, shhhh!"
-        #    print "Pre enter"
-        #    self.ids.story_button.text = self.main_app.get_story_title()
-        #    self.ids.story_button_image.source = self.main_app.get_story_media()
-        #    print self.ids.story_button.text
+        self.ids.story_button.text = self.app.get_library_object().get_story().title
+        self.ids.story_button_image.source = self.app.get_library_object().get_story().title_media_location
         self.app.menu.homebutton.state = 'normal'
         self.app.menu.creatorbutton.state = 'normal'
         self.app.menu.storybutton.state = 'normal'
@@ -105,7 +103,9 @@ class SingleLibrary(Button):
         :param num: The story number to set
         :return: Return the same number
         """
+        print "Num is {}".format(num)
         num %= len(self.stories)
+        print "Setting current story to {}".format(num)
         self.current_story = num
         return num
 
@@ -141,10 +141,13 @@ class Story(Screen):
         reason, multiple toggle buttons wind up selected.
         """
         print "Entering Story"
-
+        self.assemble_layout()
         self.app.menu.homebutton.state = 'normal'
         self.app.menu.creatorbutton.state = 'normal'
         self.app.menu.librarybutton.state = 'normal'
+
+    def assemble_layout(self):
+        pass
 
 
 class StoryBook(GridLayout):
@@ -278,9 +281,6 @@ class StoryPixiesApp(App):
 
     libraries = DictProperty()
     selected_library = StringProperty(None)
-    selected_story = StringProperty(None)
-    selected_story_no = NumericProperty(0)
-
     template_dir = ObjectProperty(None)
     library_dir = ObjectProperty(None)
 
@@ -328,6 +328,7 @@ class StoryPixiesApp(App):
             self.selected_library = library
         else:
             self.selected_library = None
+        print "Library set"
 
     def build(self):
         self.title = 'Story Pixies'
