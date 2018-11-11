@@ -1,5 +1,5 @@
 import kivy
-from kivy.uix.dropdown import DropDown
+from kivy.uix.spinner import Spinner
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.togglebutton import ToggleButton
@@ -327,6 +327,14 @@ class StoryBook(Widget):
 class Creator(Screen):
     state = StringProperty(None)
     creator_grid = ObjectProperty
+    templates = ListProperty()
+    stories = DictProperty()
+
+    def __init__(self, **kwargs):
+        super(Creator, self).__init__(**kwargs)
+        self.state = "new"
+        self.templates = []
+        self.stories = {}
 
     def on_pre_leave(self):
         self.state = "new"
@@ -344,6 +352,7 @@ class Creator(Screen):
         self.assemble_layout()
 
     def assemble_layout(self):
+        print "Assembling layout"
         self.creator_grid = self.ids.creator_grid
 
         self.creator_grid.clear_widgets()
@@ -360,43 +369,36 @@ class Creator(Screen):
             self.assemble_new_state()
 
     def assemble_new_state(self):
-        new_story = Button(text='New Story', bold=True,
+        self.templates = []
+        self.stories = {}
+
+        for library in self.app.libraries.keys():
+            for story in self.app.libraries[library].stories:
+                self.stories["{}: {}".format(library, story.title)] = {'library': library,
+                                                                       'story': story}
+        for template in self.app.template_dir.iterdir():
+            if template.is_file():
+                self.templates.append(str(template.stem))
+
+        story_button = Button(text='New Story', bold=True, size_hint_y=None,
                            background_normal='images/backgrounds/button.png',
                            on_release=partial(self.load_new_story))
-        new_template = Button(text='New Template', bold=True,
+
+        template_button = Button(text='New Template', bold=True, size_hint_y=None,
                               background_normal='images/backgrounds/button.png',
                               on_release=partial(self.load_new_template))
 
-        edit_story_d = DropDown(id='dropdown_edit_story')
-        for library in self.app.libraries.keys():
-            for story in self.app.libraries[library].stories:
-                name = "{}: {}".format(library, story.title)
-                edit_story_d.add_widget(Button(text=name, bold=True, size_hint_y=None,
-                                               background_normal='images/backgrounds/button.png',
-                                               on_release=partial(self.load_story, library, story)))
+        story_spinner = Spinner(text='Edit Story', size_hint_y=None, bold=True, values=self.stories.keys(),
+                                     background_normal='images/backgrounds/button.png')
+        story_spinner.bind(text=self.load_story)
+        template_spinner = Spinner(text='Edit Template', size_hint_y=None, bold=True, values=self.templates,
+                                        background_normal='images/backgrounds/button.png')
+        template_spinner.bind(text=self.load_template)
 
-        edit_story = Button(text='Edit Story',
-                            background_normal='images/backgrounds/button.png',
-                            bold=True)
-        edit_story.bind(on_release=edit_story_d.open)
-        edit_story_d.bind(on_select=lambda instance, x: setattr(edit_story, 'text', x))
-
-        edit_template_d = DropDown(id='dropdown_edit_template')
-        for template in self.app.get_templates():
-            edit_template_d.add_widget(Button(text=template, bold=True, size_hint_y=None,
-                                              background_normal='images/backgrounds/button.png',
-                                              on_release=partial(self.load_template, template)))
-
-        edit_template = Button(text='Edit Template',
-                               background_normal='images/backgrounds/button.png',
-                               bold=True)
-        edit_template.bind(on_release=edit_template_d.open)
-        edit_template_d.bind(on_select=lambda instance, x: setattr(edit_template, 'text', x))
-
-        self.creator_grid.add_widget(new_story)
-        self.creator_grid.add_widget(new_template)
-        self.creator_grid.add_widget(edit_story)
-        self.creator_grid.add_widget(edit_template)
+        self.creator_grid.add_widget(story_button)
+        self.creator_grid.add_widget(template_button)
+        self.creator_grid.add_widget(story_spinner)
+        self.creator_grid.add_widget(template_spinner)
 
     def assemble_new_story(self):
         pass
@@ -412,23 +414,26 @@ class Creator(Screen):
 
     def load_new_story(self, _):
         self.state = 'new_story'
+        print "Loading new story"
         self.assemble_layout()
 
     def load_new_template(self, _):
         self.state = 'new template'
+        print "Loading new template"
         self.assemble_layout()
 
-    def load_story(self, library, story, _):
+    def load_story(self, _, text):
         self.state = 'edit_story'
+        library = self.stories[text]['library']
+        story = self.stories[text]['story']
+
         print "Loading story. Library: {}, story: {}".format(library, story.title)
         self.assemble_layout()
 
-    def load_template(self, template, _):
+    def load_template(self, _, text):
         self.state = 'edit_template'
-        print "Loading template: {}".format(template)
+        print "Loading template: {}".format(text)
         self.assemble_layout()
-
-
 
 
 class EditStory(GridLayout):
@@ -512,9 +517,6 @@ class StoryPixiesApp(App):
         else:
             self.selected_library = None
         print "Library set"
-
-    def get_templates(self):
-        return ['foo', 'bar']
 
     def build(self):
         self.title = 'Story Pixies'
