@@ -1,4 +1,6 @@
 import kivy
+from kivy.uix.settings import SettingOptions, SettingsWithTabbedPanel, SettingsWithSidebar, Settings, SettingItem, \
+    SettingTitle, SettingsPanel
 from kivy.uix.spinner import Spinner
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
@@ -6,7 +8,7 @@ from kivy.uix.togglebutton import ToggleButton
 
 from pathlib import Path
 from functools import partial
-from storysettings import get_settings_json
+from storysettings import get_settings_json, get_new_settings
 
 from kivy.app import App
 from kivy.config import ConfigParser
@@ -29,6 +31,20 @@ class MainMenu(GridLayout):
 class LibraryButton(Button):
     pass
 
+
+class LibraryOptions(SettingOptions):
+    function_string = StringProperty()
+
+    def _create_popup(self, instance):
+        story_list = (Path(__file__).parents[0].absolute() / "libraries" / instance.section).glob('**/*.ini')
+        self.options = [l.stem for l in story_list]
+        super(LibraryOptions, self)._create_popup(instance)
+
+
+class LibrarySettings(SettingsWithSidebar):
+    def __init__(self, **kwargs):
+        super(LibrarySettings, self).__init__(**kwargs)
+        self.register_type('library_options', LibraryOptions)
 
 class Home(Screen):
 
@@ -244,6 +260,9 @@ class StoryBook(Widget):
     # The parsed story config
     story_config = ObjectProperty(None)
 
+    # The defaults file
+    story_config_file = StringProperty(None)
+
     # Where is the title media?
     title_media_location = StringProperty(None)
 
@@ -267,8 +286,10 @@ class StoryBook(Widget):
         self.current_page = "title"
         self.current_page_no = 0
         self.pages = []
+        self.story_config_file = ""
 
     def load_story_config(self, template_dir, library_dir):
+        self.story_config_file = str(library_dir.joinpath(self.title + '.ini'))
         self.story_config = ConfigParser()
 
         tmp_config = ConfigParser()
@@ -329,12 +350,13 @@ class Creator(Screen):
     creator_grid = ObjectProperty
     templates = ListProperty()
     stories = DictProperty()
-
+    settings_panel = ObjectProperty()
     def __init__(self, **kwargs):
         super(Creator, self).__init__(**kwargs)
         self.state = "new"
         self.templates = []
         self.stories = {}
+
 
     def on_pre_leave(self):
         self.state = "new"
@@ -351,20 +373,20 @@ class Creator(Screen):
         self.app.menu.librarybutton.state = 'normal'
         self.assemble_layout()
 
-    def assemble_layout(self):
+    def assemble_layout(self, **kwargs):
         print "Assembling layout"
         self.creator_grid = self.ids.creator_grid
 
         self.creator_grid.clear_widgets()
 
         if self.state == 'new_story':
-            self.assemble_new_story()
+            self.assemble_new_story(**kwargs)
         elif self.state == 'new_template':
-            self.assemble_new_template()
+            self.assemble_new_template(**kwargs)
         elif self.state == 'edit_story':
-            self.assemble_edit_story()
+            self.assemble_edit_story(**kwargs)
         elif self.state == 'edit_template':
-            self.assemble_edit_template()
+            self.assemble_edit_template(**kwargs)
         elif self.state == 'new' or self.state is None:
             self.assemble_new_state()
 
@@ -400,17 +422,26 @@ class Creator(Screen):
         self.creator_grid.add_widget(story_spinner)
         self.creator_grid.add_widget(template_spinner)
 
-    def assemble_new_story(self):
+    def assemble_new_story(self, **kwargs):
+        self.add_new_settings()
+
+    def assemble_new_template(self, **kwargs):
         pass
 
-    def assemble_new_template(self):
-        pass
+    def assemble_edit_story(self, **kwargs):
+        story = kwargs['story']
+        library = kwargs['library']
+        settings_panel = Settings()
+        #settings_panel.bind(on_close=story.story_config.write)
+        settings_panel.add_json_panel('title', story.story_config, data=get_new_settings(library))
+        self.creator_grid.add_widget( settings_panel)
 
-    def assemble_edit_story(self):
-        pass
-
-    def assemble_edit_template(self):
-        pass
+    def assemble_edit_template(self, **kwargs):
+        template = kwargs['template']
+        settings_panel = Settings()
+        settings_panel.bind(on_close=story.story_config.write)
+        settings_panel.add_json_panel('title', story.story_config, data=get_new_settings(library))
+        self.creator_grid.add_widget( settings_panel)
 
     def load_new_story(self, _):
         self.state = 'new_story'
@@ -428,12 +459,12 @@ class Creator(Screen):
         story = self.stories[text]['story']
 
         print "Loading story. Library: {}, story: {}".format(library, story.title)
-        self.assemble_layout()
+        self.assemble_layout(story=story, library=library)
 
     def load_template(self, _, text):
         self.state = 'edit_template'
         print "Loading template: {}".format(text)
-        self.assemble_layout()
+        self.assemble_layout(template=text)
 
 
 class EditStory(GridLayout):
@@ -470,6 +501,8 @@ class StoryPixiesApp(App):
 
     template_dir = ObjectProperty(None)
     library_dir = ObjectProperty(None)
+
+    story_settings = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         """
@@ -520,6 +553,9 @@ class StoryPixiesApp(App):
 
     def build(self):
         self.title = 'Story Pixies'
+        self.settings_cls = LibrarySettings
+        self.use_kivy_settings = False
+
         self.manager = ScreenManager(transition=FadeTransition())
 
         # Add a home screen where the user can change libraries
@@ -547,6 +583,23 @@ class StoryPixiesApp(App):
         self.set_selected_library(self.selected_library)
 
         return self.top_grid
+
+    def build_config(self, config):
+        config.setdefaults('global', {'template_dir': str((Path(__file__).parents[0].absolute() / "templates"))})
+        for library in self.libraries:
+            config.setdefaults(library, {
+                'name': library,
+                'story_dir': str((Path(__file__).parents[0].absolute() / "libraries").joinpath(library))
+            })
+
+    def build_settings(self, settings):
+        settings.add_json_panel('Global', self.config, data=get_settings_json('global'))
+
+        for library in self.libraries:
+            settings.add_json_panel(library.capitalize(), self.config, data=get_settings_json(library))
+
+    def on_config_change(self, config, section, key, value):
+        print "Config change of {}. Section: {}, key: {}, value: {}".format(config, section, key, value)
 
     # Screen switching methods
     def home_screen(self, _):
