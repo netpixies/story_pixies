@@ -47,8 +47,6 @@
 
 <LibraryButton>:
     libraries: app.libraries
-    selected_library: app.selected_library
-    manager: app.manager
     background_normal: 'images/backgrounds/button.png'
     font_size: 60
     bold: True
@@ -61,7 +59,6 @@
     on_release: app.library_screen(self)
 
 <Home>:
-    id: home_screen
     libraries: app.libraries
     app: app
 
@@ -97,7 +94,6 @@
 
 
 <Library>:
-    id: library_grid
     app: app
 
     BoxLayout:
@@ -153,7 +149,6 @@
     app: app
 
 <Story>:
-    id: story_grid
     app: app
     GridLayout:
         id: story_book_grid
@@ -165,13 +160,17 @@
 
 
 <Creator>:
-    id: creator_grid
     app: app
 
-<NewStory>:
-
-<NewTemplate>:
+    GridLayout:
+        cols: 1
+        rows: 4
+        id: creator_grid
+        Button:
+            text: 'New Story'
+            on_press:
 
 <EditStory>:
 
 <EditTemplate>:
+

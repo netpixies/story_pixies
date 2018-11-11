@@ -1,4 +1,5 @@
 import kivy
+from kivy.uix.dropdown import DropDown
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.togglebutton import ToggleButton
@@ -213,7 +214,8 @@ class Story(Screen):
         if media_type == 'image':
             return Image(source=self.current_story.get_story_media(), allow_stretch=False, keep_ratio=True)
         elif media_type == 'video':
-            return VideoPlayer(id=self.current_story.current_page + 'video', source=self.current_story.get_story_media(), state='play',
+            return VideoPlayer(id=self.current_story.current_page + 'video',
+                               source=self.current_story.get_story_media(), state='play',
                                options={'allow_stretch': True, 'keep_ratio': True})
 
 
@@ -323,6 +325,11 @@ class StoryBook(Widget):
 
 
 class Creator(Screen):
+    state = StringProperty(None)
+    creator_grid = ObjectProperty
+
+    def on_pre_leave(self):
+        self.state = "new"
 
     def on_pre_enter(self):
         """
@@ -334,26 +341,114 @@ class Creator(Screen):
         self.app.menu.homebutton.state = 'normal'
         self.app.menu.storybutton.state = 'normal'
         self.app.menu.librarybutton.state = 'normal'
+        self.assemble_layout()
+
+    def assemble_layout(self):
+        self.creator_grid = self.ids.creator_grid
+
+        self.creator_grid.clear_widgets()
+
+        if self.state == 'new_story':
+            self.assemble_new_story()
+        elif self.state == 'new_template':
+            self.assemble_new_template()
+        elif self.state == 'edit_story':
+            self.assemble_edit_story()
+        elif self.state == 'edit_template':
+            self.assemble_edit_template()
+        elif self.state == 'new' or self.state is None:
+            self.assemble_new_state()
+
+    def assemble_new_state(self):
+        new_story = Button(text='New Story', bold=True,
+                           background_normal='images/backgrounds/button.png',
+                           on_release=partial(self.load_new_story))
+        new_template = Button(text='New Template', bold=True,
+                              background_normal='images/backgrounds/button.png',
+                              on_release=partial(self.load_new_template))
+
+        edit_story_d = DropDown(id='dropdown_edit_story')
+        for library in self.app.libraries.keys():
+            for story in self.app.libraries[library].stories:
+                name = "{}: {}".format(library, story.title)
+                edit_story_d.add_widget(Button(text=name, bold=True, size_hint_y=None,
+                                               background_normal='images/backgrounds/button.png',
+                                               on_release=partial(self.load_story, library, story)))
+
+        edit_story = Button(text='Edit Story',
+                            background_normal='images/backgrounds/button.png',
+                            bold=True)
+        edit_story.bind(on_release=edit_story_d.open)
+        edit_story_d.bind(on_select=lambda instance, x: setattr(edit_story, 'text', x))
+
+        edit_template_d = DropDown(id='dropdown_edit_template')
+        for template in self.app.get_templates():
+            edit_template_d.add_widget(Button(text=template, bold=True, size_hint_y=None,
+                                              background_normal='images/backgrounds/button.png',
+                                              on_release=partial(self.load_template, template)))
+
+        edit_template = Button(text='Edit Template',
+                               background_normal='images/backgrounds/button.png',
+                               bold=True)
+        edit_template.bind(on_release=edit_template_d.open)
+        edit_template_d.bind(on_select=lambda instance, x: setattr(edit_template, 'text', x))
+
+        self.creator_grid.add_widget(new_story)
+        self.creator_grid.add_widget(new_template)
+        self.creator_grid.add_widget(edit_story)
+        self.creator_grid.add_widget(edit_template)
+
+    def assemble_new_story(self):
+        pass
+
+    def assemble_new_template(self):
+        pass
+
+    def assemble_edit_story(self):
+        pass
+
+    def assemble_edit_template(self):
+        pass
+
+    def load_new_story(self, _):
+        self.state = 'new_story'
+        self.assemble_layout()
+
+    def load_new_template(self, _):
+        self.state = 'new template'
+        self.assemble_layout()
+
+    def load_story(self, library, story, _):
+        self.state = 'edit_story'
+        print "Loading story. Library: {}, story: {}".format(library, story.title)
+        self.assemble_layout()
+
+    def load_template(self, template, _):
+        self.state = 'edit_template'
+        print "Loading template: {}".format(template)
+        self.assemble_layout()
 
 
-class NewStory(GridLayout):
-    name = StringProperty(None)
-
-    def __init__(self, **kwargs):
-        self.name = kwargs['name']
-        self.template_dir = kwargs['template_dir']
-
-
-class NewTemplate(GridLayout):
-    pass
 
 
 class EditStory(GridLayout):
-    pass
+    name = StringProperty(None)
+
+    def __init__(self, **kwargs):
+        super(EditStory, self).__init__(**kwargs)
+        self.name = kwargs['name']
+        self.template_dir = kwargs['template_dir']
+        self.library_dir = kwargs['library_dir']
 
 
 class EditTemplate(GridLayout):
-    pass
+    name = StringProperty(None)
+
+    def __init__(self, **kwargs):
+        super(EditTemplate, self).__init__(**kwargs)
+        self.name = kwargs['name']
+        self.template_dir = kwargs['template_dir']
+        self.library_dir = kwargs['library_dir']
 
 
 class StoryPixiesApp(App):
@@ -367,6 +462,7 @@ class StoryPixiesApp(App):
 
     libraries = DictProperty()
     selected_library = StringProperty(None)
+
     template_dir = ObjectProperty(None)
     library_dir = ObjectProperty(None)
 
@@ -416,6 +512,9 @@ class StoryPixiesApp(App):
         else:
             self.selected_library = None
         print "Library set"
+
+    def get_templates(self):
+        return ['foo', 'bar']
 
     def build(self):
         self.title = 'Story Pixies'
