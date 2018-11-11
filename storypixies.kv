@@ -1,74 +1,46 @@
 #:kivy 1.10.1
-#: import FadeTransition kivy.uix.screenmanager.FadeTransition
-#: import win kivy.core.window
 #: import SimpleTableLayout kivy.garden.SimpleTableLayout
-<StoryBase>:
-    BoxLayout:
-        orientation: "vertical"
-
-        BoxLayout:
-            size_hint: 1, None
-            height: '48dp'
-            Button:
-                text: 'Choose Library'
-                background_normal: 'images/backgrounds/button.png'
-                on_release: sm.current = 'story_home'
-                bold: True
-            Button:
-                text: 'My Library'
-                background_normal: 'images/backgrounds/button.png'
-                on_release: sm.current = 'story_library'
-                bold: True
-            Button:
-                text: 'Creator'
-                background_normal: 'images/backgrounds/button.png'
-                on_release: sm.current = 'story_creator'
-                bold: True
-            Button:
-                text: 'Settings'
-                background_normal: 'images/backgrounds/button.png'
-                on_release: sm.current = 'story_settings'
-                bold: True
-            Button:
-                text: 'Book'
-                background_normal: 'images/backgrounds/button.png'
-                on_release: sm.current = 'story_book'
-                bold: True
-
-        ScreenManager:
-            id: sm
-            transition: FadeTransition()
-            StoryFront:
-            StoryHome:
-            StoryLibrary:
-            StoryCreator:
-            StorySettings:
-            StoryBook:
+#: import win kivy.core.window
+#: import partial functools.partial
 
 
-<StoryFront>:
-    title: "Welcome to Story Pixies!"
-    Button:
-        on_release: root.manager.current = 'story_home'
-        background_normal: 'images/background.png'
-        allow_stretch: True
-        bold: True
-        outline_width: 10
-        italic: True
-        outline_color: [0, 0, 0]
-        size: self.parent.size
-        pos: self.parent.pos
-    Label:
-        text: "Welcome to Story Pixies!"
-        size: self.parent.size
-        pos: self.parent.pos
-        font_size: 60
-        bold: True
+<MainMenu>:
+    rows: 1
+    size_hint: (1, None)
+    height: 50
+    spacing: 5
+    padding: 5
+    homebutton: homebutton
+    librarybutton: librarybutton
+    storybutton: storybutton
+    creatorbutton: creatorbutton
+    ToggleButton:
+        id: homebutton
+        group: 'mainmenu'
+        state: 'down'
+        text: 'Home'
+        on_press: app.home_screen(self)
+    ToggleButton:
+        id: librarybutton
+        group: 'mainmenu'
+        text: 'Library'
+        on_press: app.library_screen(self)
+    ToggleButton:
+        id: storybutton
+        group: 'mainmenu'
+        text: 'Story'
+        on_press: app.story_screen(self)
+    ToggleButton:
+        id: creatorbutton
+        group: 'mainmenu'
+        text: 'Creator'
+        on_press: app.creator_screen(self)
 
 
-<LibraryButton@Button>:
+<LibraryButton>:
     libraries: app.libraries
     selected_library: app.selected_library
+    manager: app.manager
     background_normal: 'images/backgrounds/button.png'
     font_size: 60
     bold: True
@@ -78,18 +50,17 @@
     size_hint_y: None
     outline_color: (0,0,0,0)
     on_press: app.set_selected_library(self.text)
-    on_release:
-        if app.selected_library == self.text: \
-        self.parent.manager.current = 'story_library'
+    on_release: app.library_screen(self)
 
-
-<StoryHome>:
-    name: 'story_home'
+<Home>:
+    id: home_screen
     libraries: app.libraries
-    selected_library: app.selected_library
+    app: app
 
-    BoxLayout:
-        id: story_home_id
+    GridLayout:
+        id: home_grid
+        rows: 1
+        spacing: 10
         ScrollView:
             bar_width: 0
             id: library_scroll_view
@@ -98,7 +69,6 @@
             size: (win.Window.width,win.Window.height)
             GridLayout:
                 id: library_grid
-                manager: root.manager
                 cols: 1
                 size_hint_y: None
                 size_hint_x: 1
@@ -118,22 +88,14 @@
             on_value: library_scroll_view.scroll_y = self.value
 
 
-<StoryCreator>:
-    name: 'story_creator'
-    BoxLayout:
-        Button:
-            text: 'Story Creator'
+<Library>:
+    id: library_grid
+    app: app
 
-
-<StoryLibrary>:
-    name: 'story_library'
-    selected_story: app.selected_story
-    stories: app.stories
     BoxLayout:
         size_hint_y: None
 
     SimpleTableLayout:
-        manager: root.manager
         id: story_layout
         cols: 4
         rows: 8
@@ -141,8 +103,8 @@
         Button:
             text: 'Back'
             bold: True
-            on_press: story_button.text = app.prev_story()
-            on_release: story_button_image.source = app.get_story_media()
+            on_press: story_button.text = app.get_library_object().prev_story()
+            on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
             background_normal: 'images/backgrounds/button.png'
 
         Label:
@@ -156,8 +118,8 @@
 
         Button:
             text: 'Next'
-            on_press: story_button.text = app.next_story()
-            on_release: story_button_image.source = app.get_story_media()
+            on_press: story_button.text = app.get_library_object().next_story()
+            on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
             bold: True
             background_normal: 'images/backgrounds/button.png'
 
@@ -165,11 +127,11 @@
             id: story_button
             colspan: 4
             rowspan: 7
-            selected_story: app.selected_story
+            current_story: app.get_library_object().current_story
             size_hint_y: None
             size_hint_x: 1
             font_size: 0
-            on_release: self.parent.manager.current = 'story_book'
+            on_release: app.story_screen(self)
             background_normal: 'images/backgrounds/button.png'
 
             Image:
@@ -179,46 +141,21 @@
                 allow_stretch: True
                 keep_ratio: True
 
+<SingleLibrary>:
+    app: app
 
-
-<StoryTemplate>:
-    name: 'story_template'
-    BoxLayout:
-        id: story_template
-
-
-<StoryBook>:
-    name: 'story_book'
-    id: story_book
-    selected_library: app.selected_library
-    selected_story: app.selected_story
-    template_config: app.template_config
-    current_page: app.current_page
-    current_page_no: app.current_page_no
-
+<Story>:
+    id: story_grid
+    app: app
     GridLayout:
         id: story_book_grid
         cols: 2
         spacing: '8dp'
 
-
-<CustomData>:
-    name: 'custom_data'
-    BoxLayout:
-        id: custom_data_box
+<StoryBook>:
+    app: app
 
 
-<StorySettings>:
-    name: 'story_settings'
-
-    BoxLayout:
-        id: settings
-        canvas:
-            Color:
-                rgba: 1.0, 0.5, 0.0, 0.0
-            Rectangle:
-                size: self.size
-                pos: self.pos
-        Button:
-            text: 'Settings'
-            on_release: app.open_settings()
+<Creator>:
+    id: creator_grid
+    app: app
