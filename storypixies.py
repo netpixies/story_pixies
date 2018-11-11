@@ -1,15 +1,18 @@
 import kivy
 from kivy.uix.settings import SettingOptions, SettingsWithTabbedPanel, SettingsWithSidebar, Settings, SettingItem, \
-    SettingTitle, SettingsPanel
+    SettingTitle, SettingsPanel, SettingSpacer, SettingString
 from kivy.uix.spinner import Spinner
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
+from kivy.metrics import dp
 
 from pathlib import Path
 from functools import partial
 from storysettings import get_settings_json, get_new_settings, get_story_settings_title, get_story_settings_page
-
+from kivy.core.window import Window
+from kivy.uix.popup import Popup
 from kivy.app import App
 from kivy.config import ConfigParser
 from kivy.uix.widget import Widget
@@ -41,10 +44,52 @@ class LibraryOptions(SettingOptions):
         super(LibraryOptions, self)._create_popup(instance)
 
 
+class StoryTextOptions(SettingString):
+
+    popup = ObjectProperty(None, allownone=True)
+
+    # Taken from SettingString... I saw no way of overriding the multiline setting
+    def _create_popup(self, instance):
+        # create popup layout
+        content = BoxLayout(orientation='vertical', spacing='5dp')
+        popup_width = min(0.95 * Window.width, dp(500))
+        self.popup = popup = Popup(
+            title=self.title, content=content, size_hint=(None, None),
+            size=(popup_width, '250dp'))
+
+        # create the textinput used for numeric input
+        self.textinput = textinput = TextInput(
+            text=self.value, font_size='24sp', multiline=True,
+            size_hint_y=None, height='96sp')
+        textinput.bind(on_text_validate=self._validate)
+        self.textinput = textinput
+
+        # construct the content, widget are used as a spacer
+        content.add_widget(Widget())
+        content.add_widget(textinput)
+        content.add_widget(Widget())
+        content.add_widget(SettingSpacer())
+
+        # 2 buttons are created for accept or cancel the current value
+        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
+        btn = Button(text='Ok')
+        btn.bind(on_release=self._validate)
+        btnlayout.add_widget(btn)
+        btn = Button(text='Cancel')
+        btn.bind(on_release=self._dismiss)
+        btnlayout.add_widget(btn)
+        content.add_widget(btnlayout)
+
+        # all done, open the popup !
+        popup.open()
+
+
 class LibrarySettings(SettingsWithSidebar):
     def __init__(self, **kwargs):
         super(LibrarySettings, self).__init__(**kwargs)
         self.register_type('library_options', LibraryOptions)
+        self.register_type('story_text', StoryTextOptions)
+
 
 class Home(Screen):
 
@@ -388,11 +433,11 @@ class Creator(Screen):
     def assemble_edit_story(self, **kwargs):
         story = kwargs['story']
         library = kwargs['library']
-        settings_panel = Settings()
+        settings_panel = LibrarySettings()
         pages = story.story_config.get('title', 'pages').split(',')
         settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title))
         for page in pages:
-            settings_panel.add_json_panel(page, story.story_config, data=get_story_settings_page(page, page))
+            settings_panel.add_json_panel(page, story.story_config, data=get_story_settings_page(story.title, page))
         self.creator_grid.add_widget( settings_panel)
 
     def load_new_story(self, _):
