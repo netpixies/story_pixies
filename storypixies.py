@@ -44,6 +44,17 @@ class LibraryOptions(SettingOptions):
         super(LibraryOptions, self)._create_popup(instance)
 
 
+class PageSettings(SettingString):
+    popup = ObjectProperty(None, allownone=True)
+
+    def on_value(self, instance, value):
+        super(PageSettings, self).on_value(instance, value)
+        if instance.parent is not None:
+            #self.creator_grid.assemble_layout()
+            print "Updated value: {}".format(value)
+            print "Instance", instance
+
+
 class StoryTextOptions(SettingString):
     popup = ObjectProperty(None, allownone=True)
 
@@ -88,6 +99,7 @@ class LibrarySettings(SettingsWithSidebar):
         super(LibrarySettings, self).__init__(**kwargs)
         self.register_type('library_options', LibraryOptions)
         self.register_type('story_text', StoryTextOptions)
+        self.register_type('page_settings', PageSettings)
 
 
 class Home(Screen):
@@ -339,7 +351,7 @@ class StoryBook(Widget):
         self.title_media_location = self.story_config.get('title', 'media_location')
 
         # Find all the pages
-        self.pages = ['title'] + [x.strip() for x in self.story_config.get('title', 'pages').split(',')]
+        self.pages = ['title'] + [x.strip() for x in self.story_config.get('metadata', 'pages').split(',')]
 
     def next_page(self):
         """
@@ -370,7 +382,7 @@ class StoryBook(Widget):
 
 class Creator(Screen):
     state = StringProperty(None)
-    creator_grid = ObjectProperty
+    creator_grid = ObjectProperty()
     stories = DictProperty()
     settings_panel = ObjectProperty()
 
@@ -433,7 +445,7 @@ class Creator(Screen):
         story = kwargs['story']
         library = kwargs['library']
         settings_panel = LibrarySettings()
-        pages = story.story_config.get('title', 'pages').split(',')
+        pages = story.story_config.get('metadata', 'pages').split(',')
         settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title, library))
         for page in pages:
             settings_panel.add_json_panel(page, story.story_config, data=get_story_settings_page(story.title, page, library))

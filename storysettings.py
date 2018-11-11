@@ -33,6 +33,33 @@ def get_settings_json(name):
 
     return json.dumps(settings_json)
 
+def get_story_settings_meta(name, library):
+    settings_json = [
+        {'type': 'title',
+         'title': "{}: '{}' metadata settings".format(library, name)
+         },
+        {'type': 'string',
+         'title': 'Story Name',
+         'desc': 'The name of the story',
+         'section': 'metadata',
+         'key': 'story'},
+        {'type': 'string',
+         'title': 'Library Name',
+         'desc': 'The name of the library',
+         'section': 'metadata',
+         'key': 'library'},
+        {'type': 'string',
+         'title': 'Author',
+         'desc': 'Story Author',
+         'section': 'title',
+         'key': 'author'},
+        {'type': 'page_settings',
+         'title': 'Pages in story',
+         'desc': 'Add, move or remove pages in the story',
+         'section': 'metadata',
+         'key': 'pages'}
+    ]
+    return json.dumps(settings_json)
 
 def get_story_settings_title(name, library):
     settings_json = [
@@ -49,11 +76,6 @@ def get_story_settings_title(name, library):
          'desc': 'Text for the title page',
          'section': 'title',
          'key': 'text'},
-        {'type': 'string',
-         'title': 'Author',
-         'desc': 'Story Author',
-         'section': 'title',
-         'key': 'author'},
         {'type': 'options',
          'title': 'Media Type',
          'desc': 'Image or Video type',
