@@ -12,6 +12,8 @@ from kivy.config import ConfigParser
 
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty, DictProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.image import Image
+from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 from kivy.uix.button import Button
@@ -134,6 +136,8 @@ class SingleLibrary(Button):
 
 
 class Story(Screen):
+    media_property = ObjectProperty(None)
+    current_story = ObjectProperty(None)
 
     def on_pre_enter(self):
         """
@@ -141,13 +145,69 @@ class Story(Screen):
         reason, multiple toggle buttons wind up selected.
         """
         print "Entering Story"
-        self.assemble_layout()
         self.app.menu.homebutton.state = 'normal'
         self.app.menu.creatorbutton.state = 'normal'
         self.app.menu.librarybutton.state = 'normal'
+        self.current_story = self.app.get_library_object().get_story()
+        self.assemble_layout()
+
 
     def assemble_layout(self):
-        pass
+        if self.media_property is not None:
+            self.media_property.state = 'stop'
+
+        top_grid = self.ids.story_book_grid
+        top_grid.clear_widgets()
+        d = self.get_story_display()
+        self.media_property = self.get_media_display()
+        story_back_button = Button(text="Back",
+                                   size_hint_y=0.1,
+                                   background_normal='images/backgrounds/button.png',
+                                   bold=True)
+        story_next_button = Button(text="Next",
+                                   size_hint_y=0.1,
+                                   background_normal='images/backgrounds/button.png',
+                                   bold=True)
+        story_back_button.bind(on_release=self.prev_page)
+        story_next_button.bind(on_release=self.next_page)
+        top_grid.add_widget(d)
+        top_grid.add_widget(self.media_property)
+        top_grid.add_widget(story_back_button)
+        top_grid.add_widget(story_next_button)
+
+    def prev_page(self, _):
+        if self.current_story.current_page == 'title':
+            self.app.library_screen(self)
+        else:
+            self.current_story.previous_page()
+            self.assemble_layout()
+
+    def next_page(self, _):
+        page_now = self.current_story.current_page_no
+        self.current_story.next_page()
+        if page_now == self.current_story.current_page_no:
+            self.app.library_screen(self)
+        else:
+            self.assemble_layout()
+
+    def get_story_display(self):
+        story_text_label = Label(text=self.current_story.get_story_text(),
+                                 text_size=(None, None),
+                                 font_size="20sp",
+                                 pos_hint={'center_x': 0.5, 'center_y': 100.85},
+                                 size_hint_y=1,
+                                 halign="center",
+                                 valign="middle")
+
+        return story_text_label
+
+    def get_media_display(self):
+        media_type = self.current_story.get_story_media_type()
+        if media_type == 'image':
+            return Image(source=self.current_story.get_story_media(), allow_stretch=False, keep_ratio=True)
+        elif media_type == 'video':
+            return VideoPlayer(id=self.current_story.current_page + 'video', source=self.current_story.get_story_media(), state='play',
+                               options={'allow_stretch': True, 'keep_ratio': True})
 
 
 class StoryBook(GridLayout):
@@ -233,15 +293,15 @@ class StoryBook(GridLayout):
         """
         Updates the current page to be the next page
         """
-        self.current_page_no = min(self.current_page_no + 1, len(self.current_pages) - 1)
-        self.current_page = self.current_pages[self.current_page_no]
+        self.current_page_no = min(self.current_page_no + 1, len(self.pages) - 1)
+        self.current_page = self.pages[self.current_page_no]
 
     def previous_page(self):
         """
         Updates the current page to be the previous page
         """
-        self.current_page_no = min(self.current_page_no - 1, len(self.current_pages) - 1)
-        self.current_page = self.current_pages[self.current_page_no]
+        self.current_page_no = min(self.current_page_no - 1, len(self.pages) - 1)
+        self.current_page = self.pages[self.current_page_no]
 
     def get_story_value(self, page, value):
         return self.story_config.get(page, value)
