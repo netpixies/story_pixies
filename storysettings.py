@@ -33,7 +33,8 @@ def get_settings_json(name):
 
     return json.dumps(settings_json)
 
-def get_story_settings_meta(name, library):
+
+def get_story_settings_metadata(name, library):
     settings_json = [
         {'type': 'title',
          'title': "{}: '{}' metadata settings".format(library, name)
@@ -51,7 +52,7 @@ def get_story_settings_meta(name, library):
         {'type': 'string',
          'title': 'Author',
          'desc': 'Story Author',
-         'section': 'title',
+         'section': 'metadata',
          'key': 'author'},
         {'type': 'page_settings',
          'title': 'Pages in story',
@@ -60,6 +61,7 @@ def get_story_settings_meta(name, library):
          'key': 'pages'}
     ]
     return json.dumps(settings_json)
+
 
 def get_story_settings_title(name, library):
     settings_json = [

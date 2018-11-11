@@ -10,7 +10,8 @@ from kivy.metrics import dp
 
 from pathlib import Path
 from functools import partial
-from storysettings import get_settings_json, get_new_settings, get_story_settings_title, get_story_settings_page
+from storysettings import get_settings_json, get_story_settings_metadata, get_story_settings_title, \
+    get_story_settings_page
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
 from kivy.app import App
@@ -50,7 +51,7 @@ class PageSettings(SettingString):
     def on_value(self, instance, value):
         super(PageSettings, self).on_value(instance, value)
         if instance.parent is not None:
-            #self.creator_grid.assemble_layout()
+            # self.creator_grid.assemble_layout()
             print "Updated value: {}".format(value)
             print "Instance", instance
 
@@ -416,6 +417,10 @@ class Creator(Screen):
             self.assemble_new_story(**kwargs)
         elif self.state == 'edit_story':
             self.assemble_edit_story(**kwargs)
+        elif self.state == 'edit_metadata':
+            self.assemble_edit_metadata(**kwargs)
+        elif self.state == 'add_page':
+            self.add_new_page(**kwargs)
         elif self.state == 'new' or self.state is None:
             self.assemble_new_state()
 
@@ -431,11 +436,21 @@ class Creator(Screen):
                               background_normal='images/backgrounds/button.png',
                               on_release=partial(self.load_new_story))
 
+        metadata_spinner = Spinner(text='Edit Story Metadata', size_hint_y=None, bold=True, values=self.stories.keys(),
+                                   background_normal='images/backgrounds/button.png')
+        metadata_spinner.bind(text=self.load_metadata)
+
+        add_page_spinner = Spinner(text='Add Story Page', size_hint_y=None, bold=True, values=self.stories.keys(),
+                                   background_normal='images/backgrounds/button.png')
+        add_page_spinner.bind(text=self.load_new_page)
+
         story_spinner = Spinner(text='Edit Story', size_hint_y=None, bold=True, values=self.stories.keys(),
                                 background_normal='images/backgrounds/button.png')
         story_spinner.bind(text=self.load_story)
 
         self.creator_grid.add_widget(story_button)
+        self.creator_grid.add_widget(metadata_spinner)
+        self.creator_grid.add_widget(add_page_spinner)
         self.creator_grid.add_widget(story_spinner)
 
     def assemble_new_story(self, **kwargs):
@@ -448,8 +463,37 @@ class Creator(Screen):
         pages = story.story_config.get('metadata', 'pages').split(',')
         settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title, library))
         for page in pages:
-            settings_panel.add_json_panel(page, story.story_config, data=get_story_settings_page(story.title, page, library))
+            settings_panel.add_json_panel(page, story.story_config,
+                                          data=get_story_settings_page(story.title, page, library))
         self.creator_grid.add_widget(settings_panel)
+
+    def assemble_edit_metadata(self, **kwargs):
+        story = kwargs['story']
+        library = kwargs['library']
+        settings_panel = LibrarySettings()
+        settings_panel.add_json_panel('metadata', story.story_config,
+                                      data=get_story_settings_metadata(story.title, library))
+        self.creator_grid.add_widget(settings_panel)
+
+    def add_new_page(self, **kwargs):
+        page = kwargs['page']
+        story = kwargs['story']
+        library = kwargs['library']
+
+        settings_panel = LibrarySettings()
+        story.story_config.setdefaults(page, {'name': 'New page', 'text': 'New page text',
+                                              'media': 'image', 'media_location': 'images/page.png'})
+        settings_panel.create_json_panel(page, story.story_config,
+                                         data=get_story_settings_page(story.title, page, library))
+        story.story_config.adddefaultsection(page)
+        all_pages = story.story_config.get('metadata','pages')
+
+        story.story_config.set('metadata','pages', all_pages + ",foobar")
+        story.story_config.write()
+        print 'foo'
+        self.state = 'edit_story'
+        self.assemble_layout(story=story, library=library)
+        #self.creator_grid.add_widget(settings_panel)
 
     def load_new_story(self, _):
         self.state = 'new_story'
@@ -462,6 +506,23 @@ class Creator(Screen):
         story = self.stories[text]['story']
 
         print "Loading story. Library: {}, story: {}".format(library, story.title)
+        self.assemble_layout(story=story, library=library)
+
+    def load_new_page(self, _, text):
+        self.state = 'add_page'
+        library = self.stories[text]['library']
+        story = self.stories[text]['story']
+
+        print "Adding story page. Library: {}, story: {}".format(library, story.title)
+        self.assemble_layout(story=story, library=library, page='foobar')
+
+    def load_metadata(self, _, text):
+        print "Under construction"
+        return
+        library = self.stories[text]['library']
+        story = self.stories[text]['story']
+
+        print "Loading metadata. Library: {}, story: {}".format(library, story.title)
         self.assemble_layout(story=story, library=library)
 
 
