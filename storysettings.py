@@ -44,7 +44,7 @@ def get_story_settings_title(name):
          'desc': 'The name of the Story',
          'section': 'title',
          'key': 'name'},
-        {'type': 'string',
+        {'type': 'story_text',
          'title': 'Title Text',
          'desc': 'Text for the title page',
          'section': 'title',
@@ -74,19 +74,14 @@ def get_story_settings_title(name):
 def get_story_settings_page(name, page):
     settings_json = [
         {'type': 'title',
-         'title': "{} Settings".format(name)
+         'title': "{} {} Settings".format(name, page)
          },
-        {'type': 'string',
-         'title': 'name',
-         'desc': 'The name of the Page',
-         'section': page,
-         'key': 'name'},
         {'type': 'string',
          'title': 'Page Name',
          'desc': 'The name of the page',
          'section': page,
          'key': 'name'},
-        {'type': 'string',
+        {'type': 'story_text',
          'title': 'Page Text',
          'desc': 'Text for this page',
          'section': page,
