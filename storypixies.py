@@ -96,9 +96,6 @@ class SingleLibrary(Widget):
     # The currently set story, defaults to the first
     current_story = NumericProperty(None)
 
-    # The directory to find templates
-    template_dir = ObjectProperty(None)
-
     # This library's directory
     library_dir = ObjectProperty(None)
 
@@ -106,7 +103,6 @@ class SingleLibrary(Widget):
         super(SingleLibrary, self).__init__(**kwargs)
         self.name = kwargs['name']
         self.location = kwargs['location']
-        self.template_dir = kwargs['template_dir']
         self.library_dir = kwargs['library_dir']
         self.stories = []
         self.current_story = 0
@@ -120,7 +116,7 @@ class SingleLibrary(Widget):
                                       title=story.stem,
                                       location=story,
                                       number=i)
-                new_story.load_story_config(self.template_dir, self.library_dir)
+                new_story.load_story_config(self.library_dir)
                 self.stories.append(new_story)
             i += 1
 
@@ -254,9 +250,6 @@ class StoryBook(Widget):
     # List of all pages by name
     pages = ListProperty()
 
-    # The name of this story's template
-    template = StringProperty(None)
-
     # The parsed story config
     story_config = ObjectProperty(None)
 
@@ -288,26 +281,12 @@ class StoryBook(Widget):
         self.pages = []
         self.story_config_file = ""
 
-    def load_story_config(self, template_dir, library_dir):
+    def load_story_config(self, library_dir):
         self.story_config_file = str(library_dir.joinpath(self.title + '.ini'))
         self.story_config = ConfigParser()
 
-        tmp_config = ConfigParser()
-        tmp_config.read(str(library_dir) + '/' + self.title + '.ini')
-
-        # Get story template
-        self.template = tmp_config.get('template', 'name')
-
-        if not self.template.endswith('.ini'):
-            self.template = self.template + '.ini'
-
-        template_location = template_dir.joinpath(self.template)
-
-        # Set defaults from story .ini file
-        self.story_config.setall('DEFAULT', dict(tmp_config.items('values')))
-
-        # Set config from story's template. Values will be interpolated from above DEFAULT.
-        self.story_config.read(str(template_location))
+        # Set config from story's config file.
+        self.story_config.read(str(self.story_config_file))
 
         # Find the media type (image, video) for this story's title page
         self.title_media = self.story_config.get('title', 'media')
@@ -348,15 +327,13 @@ class StoryBook(Widget):
 class Creator(Screen):
     state = StringProperty(None)
     creator_grid = ObjectProperty
-    templates = ListProperty()
     stories = DictProperty()
     settings_panel = ObjectProperty()
+
     def __init__(self, **kwargs):
         super(Creator, self).__init__(**kwargs)
         self.state = "new"
-        self.templates = []
         self.stories = {}
-
 
     def on_pre_leave(self):
         self.state = "new"
@@ -381,52 +358,32 @@ class Creator(Screen):
 
         if self.state == 'new_story':
             self.assemble_new_story(**kwargs)
-        elif self.state == 'new_template':
-            self.assemble_new_template(**kwargs)
         elif self.state == 'edit_story':
             self.assemble_edit_story(**kwargs)
-        elif self.state == 'edit_template':
-            self.assemble_edit_template(**kwargs)
         elif self.state == 'new' or self.state is None:
             self.assemble_new_state()
 
     def assemble_new_state(self):
-        self.templates = []
         self.stories = {}
 
         for library in self.app.libraries.keys():
             for story in self.app.libraries[library].stories:
                 self.stories["{}: {}".format(library, story.title)] = {'library': library,
                                                                        'story': story}
-        for template in self.app.template_dir.iterdir():
-            if template.is_file():
-                self.templates.append(str(template.stem))
 
         story_button = Button(text='New Story', bold=True, size_hint_y=None,
                            background_normal='images/backgrounds/button.png',
                            on_release=partial(self.load_new_story))
 
-        template_button = Button(text='New Template', bold=True, size_hint_y=None,
-                              background_normal='images/backgrounds/button.png',
-                              on_release=partial(self.load_new_template))
-
         story_spinner = Spinner(text='Edit Story', size_hint_y=None, bold=True, values=self.stories.keys(),
                                      background_normal='images/backgrounds/button.png')
         story_spinner.bind(text=self.load_story)
-        template_spinner = Spinner(text='Edit Template', size_hint_y=None, bold=True, values=self.templates,
-                                        background_normal='images/backgrounds/button.png')
-        template_spinner.bind(text=self.load_template)
 
         self.creator_grid.add_widget(story_button)
-        self.creator_grid.add_widget(template_button)
         self.creator_grid.add_widget(story_spinner)
-        self.creator_grid.add_widget(template_spinner)
 
     def assemble_new_story(self, **kwargs):
         self.add_new_settings()
-
-    def assemble_new_template(self, **kwargs):
-        pass
 
     def assemble_edit_story(self, **kwargs):
         story = kwargs['story']
@@ -436,21 +393,16 @@ class Creator(Screen):
         settings_panel.add_json_panel('title', story.story_config, data=get_new_settings(library))
         self.creator_grid.add_widget( settings_panel)
 
-    def assemble_edit_template(self, **kwargs):
-        template = kwargs['template']
-        settings_panel = Settings()
-        settings_panel.bind(on_close=story.story_config.write)
-        settings_panel.add_json_panel('title', story.story_config, data=get_new_settings(library))
-        self.creator_grid.add_widget( settings_panel)
+    #def assemble_edit_template(self, **kwargs):
+    #    template = kwargs['template']
+    #    settings_panel = Settings()
+    #    settings_panel.bind(on_close=story.story_config.write)
+    #    settings_panel.add_json_panel('title', story.story_config, data=get_new_settings(library))
+    #    self.creator_grid.add_widget( settings_panel)
 
     def load_new_story(self, _):
         self.state = 'new_story'
         print "Loading new story"
-        self.assemble_layout()
-
-    def load_new_template(self, _):
-        self.state = 'new template'
-        print "Loading new template"
         self.assemble_layout()
 
     def load_story(self, _, text):
@@ -461,11 +413,6 @@ class Creator(Screen):
         print "Loading story. Library: {}, story: {}".format(library, story.title)
         self.assemble_layout(story=story, library=library)
 
-    def load_template(self, _, text):
-        self.state = 'edit_template'
-        print "Loading template: {}".format(text)
-        self.assemble_layout(template=text)
-
 
 class EditStory(GridLayout):
     name = StringProperty(None)
@@ -473,17 +420,6 @@ class EditStory(GridLayout):
     def __init__(self, **kwargs):
         super(EditStory, self).__init__(**kwargs)
         self.name = kwargs['name']
-        self.template_dir = kwargs['template_dir']
-        self.library_dir = kwargs['library_dir']
-
-
-class EditTemplate(GridLayout):
-    name = StringProperty(None)
-
-    def __init__(self, **kwargs):
-        super(EditTemplate, self).__init__(**kwargs)
-        self.name = kwargs['name']
-        self.template_dir = kwargs['template_dir']
         self.library_dir = kwargs['library_dir']
 
 
@@ -499,7 +435,6 @@ class StoryPixiesApp(App):
     libraries = DictProperty()
     selected_library = StringProperty(None)
 
-    template_dir = ObjectProperty(None)
     library_dir = ObjectProperty(None)
 
     story_settings = ObjectProperty(None)
@@ -514,7 +449,6 @@ class StoryPixiesApp(App):
         super(StoryPixiesApp, self).__init__(**kwargs)
 
         # Initialize libraries from files
-        self.template_dir = (Path(__file__).parents[0].absolute() / "templates")
         self.library_dir = (Path(__file__).parents[0].absolute() / "libraries")
         self.add_libraries()
 
@@ -525,7 +459,6 @@ class StoryPixiesApp(App):
             print "Adding library {}".format(library.stem)
             self.libraries[library.stem] = SingleLibrary(name=library.stem,
                                                          location=library,
-                                                         template_dir=self.template_dir,
                                                          library_dir=self.library_dir.joinpath(library.stem))
 
         if len(self.libraries.keys()) == 0:
@@ -570,7 +503,7 @@ class StoryPixiesApp(App):
         self.story = Story(name='story')
         self.manager.add_widget(self.story)
 
-        # Add a creator screen where the user can create new stories and templates
+        # Add a creator screen where the user can create new stories
         self.creator = Creator(name='creator')
         self.manager.add_widget(self.creator)
 
@@ -585,7 +518,7 @@ class StoryPixiesApp(App):
         return self.top_grid
 
     def build_config(self, config):
-        config.setdefaults('global', {'template_dir': str((Path(__file__).parents[0].absolute() / "templates"))})
+        config.setdefaults('global', {'color': "0,0,0"})
         for library in self.libraries:
             config.setdefaults(library, {
                 'name': library,

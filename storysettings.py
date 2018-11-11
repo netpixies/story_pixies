@@ -1,16 +1,16 @@
 import json
 
+
 def get_settings_json(name):
     if name == 'global':
         settings_json = [
-        {'type': 'title',
-         'title': 'Global Settings'},
-        {'type': 'path',
-         'title': 'Template Location',
-         'desc': 'The template directory',
-         'section': 'global',
-         'key': 'template_dir',
-         'dirselect': True}]
+            {'type': 'title',
+             'title': 'Global Settings'},
+            {'type': 'string',
+             'title': 'color',
+             'desc': 'Base color',
+             'section': 'global',
+             'key': 'color'}]
     else:
         settings_json = [
             {'type': 'title',
@@ -32,6 +32,77 @@ def get_settings_json(name):
                 settings_json[idx]['section'] = name
 
     return json.dumps(settings_json)
+
+
+def get_story_settings(name, pages=2):
+    settings_json = [
+        {'type': 'title',
+         'title': "{} Settings".format(name)
+         },
+        {'type': 'string',
+         'title': 'Title Name',
+         'desc': 'The name of the Story',
+         'section': 'title',
+         'key': 'name'},
+        {'type': 'string',
+         'title': 'Title Text',
+         'desc': 'Text for the title page',
+         'section': 'title',
+         'key': 'text'},
+        {'type': 'string',
+         'title': 'Author',
+         'desc': 'Story Author',
+         'section': 'title',
+         'key': 'author'},
+        {'type': 'options',
+         'title': 'Media Type',
+         'desc': 'Image or Video type',
+         'options': ['image', 'video'],
+         'section': 'title',
+         'key': 'media'
+         },
+        {'type': 'path',
+         'title': 'Media Location',
+         'desc': 'Filename of the media',
+         'section': 'title',
+         'key': 'media_location',
+         'dirselect': False}
+    ]
+
+    for i in range(1, pages + 1):
+        settings_json.append({
+            {'type': 'string',
+             'title': 'name',
+             'desc': 'The name of the Page',
+             'section': "page{}".format(str(i)),
+             'key': 'name'},
+            {'type': 'string',
+             'title': 'Page Name',
+             'desc': 'The name of the page',
+             'section': "page{}".format(str(i)),
+             'key': 'name'},
+            {'type': 'string',
+             'title': 'Page Text',
+             'desc': 'Text for this page',
+             'section': "page{}".format(str(i)),
+             'key': 'text'},
+            {'type': 'options',
+             'title': 'Media Type',
+             'desc': 'Image or Video type',
+             'options': ['image', 'video'],
+             'section': "page{}".format(str(i)),
+             'key': 'media'
+             },
+            {'type': 'path',
+             'title': 'Media Location',
+             'desc': 'Filename of the media',
+             'section': "page{}".format(str(i)),
+             'key': 'media_location',
+             'dirselect': False}
+        })
+
+    return json.dumps(settings_json)
+
 
 def get_new_settings(name):
     settings_json = [
