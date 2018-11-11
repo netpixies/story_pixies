@@ -9,7 +9,7 @@ from storysettings import get_settings_json
 
 from kivy.app import App
 from kivy.config import ConfigParser
-
+from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty, DictProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
@@ -30,6 +30,7 @@ class LibraryButton(Button):
 
 
 class Home(Screen):
+
     def __init__(self, **kwargs):
         super(Home, self).__init__(**kwargs)
 
@@ -65,7 +66,7 @@ class Library(Screen):
         self.app.menu.storybutton.state = 'normal'
 
 
-class SingleLibrary(Button):
+class SingleLibrary(Widget):
     # Path object of the library directory
     location = ObjectProperty(None)
 
@@ -151,7 +152,6 @@ class Story(Screen):
         self.current_story = self.app.get_library_object().get_story()
         self.assemble_layout()
 
-
     def assemble_layout(self):
         if self.media_property is not None:
             self.media_property.state = 'stop'
@@ -210,7 +210,7 @@ class Story(Screen):
                                options={'allow_stretch': True, 'keep_ratio': True})
 
 
-class StoryBook(GridLayout):
+class StoryBook(Widget):
     # This story's title
     title = StringProperty(None)
 
@@ -421,7 +421,7 @@ class StoryPixiesApp(App):
         return self.top_grid
 
     # Screen switching methods
-    def home_screen(self, button):
+    def home_screen(self, _):
         button = self.menu.homebutton
         self.switch_screen('home', button)
 
