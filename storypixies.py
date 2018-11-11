@@ -1,13 +1,18 @@
 import kivy
+from kivy.uix.settings import SettingOptions, SettingsWithTabbedPanel, SettingsWithSidebar, Settings, SettingItem, \
+    SettingTitle, SettingsPanel, SettingSpacer, SettingString
 from kivy.uix.spinner import Spinner
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
+from kivy.metrics import dp
 
 from pathlib import Path
 from functools import partial
-from storysettings import get_settings_json
-
+from storysettings import get_settings_json, get_new_settings, get_story_settings_title, get_story_settings_page
+from kivy.core.window import Window
+from kivy.uix.popup import Popup
 from kivy.app import App
 from kivy.config import ConfigParser
 from kivy.uix.widget import Widget
@@ -28,6 +33,62 @@ class MainMenu(GridLayout):
 
 class LibraryButton(Button):
     pass
+
+
+class LibraryOptions(SettingOptions):
+    function_string = StringProperty()
+
+    def _create_popup(self, instance):
+        story_list = (Path(__file__).parents[0].absolute() / "libraries" / instance.section).glob('**/*.ini')
+        self.options = [l.stem for l in story_list]
+        super(LibraryOptions, self)._create_popup(instance)
+
+
+class StoryTextOptions(SettingString):
+
+    popup = ObjectProperty(None, allownone=True)
+
+    # Taken from SettingString... I saw no way of overriding the multiline setting
+    def _create_popup(self, instance):
+        # create popup layout
+        content = BoxLayout(orientation='vertical', spacing='5dp')
+        popup_width = min(0.95 * Window.width, dp(500))
+        self.popup = popup = Popup(
+            title=self.title, content=content, size_hint=(None, None),
+            size=(popup_width, '250dp'))
+
+        # create the textinput used for numeric input
+        self.textinput = textinput = TextInput(
+            text=self.value, font_size='24sp', multiline=True,
+            size_hint_y=None, height='96sp')
+        textinput.bind(on_text_validate=self._validate)
+        self.textinput = textinput
+
+        # construct the content, widget are used as a spacer
+        content.add_widget(Widget())
+        content.add_widget(textinput)
+        content.add_widget(Widget())
+        content.add_widget(SettingSpacer())
+
+        # 2 buttons are created for accept or cancel the current value
+        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
+        btn = Button(text='Ok')
+        btn.bind(on_release=self._validate)
+        btnlayout.add_widget(btn)
+        btn = Button(text='Cancel')
+        btn.bind(on_release=self._dismiss)
+        btnlayout.add_widget(btn)
+        content.add_widget(btnlayout)
+
+        # all done, open the popup !
+        popup.open()
+
+
+class LibrarySettings(SettingsWithSidebar):
+    def __init__(self, **kwargs):
+        super(LibrarySettings, self).__init__(**kwargs)
+        self.register_type('library_options', LibraryOptions)
+        self.register_type('story_text', StoryTextOptions)
 
 
 class Home(Screen):
@@ -80,9 +141,6 @@ class SingleLibrary(Widget):
     # The currently set story, defaults to the first
     current_story = NumericProperty(None)
 
-    # The directory to find templates
-    template_dir = ObjectProperty(None)
-
     # This library's directory
     library_dir = ObjectProperty(None)
 
@@ -90,7 +148,6 @@ class SingleLibrary(Widget):
         super(SingleLibrary, self).__init__(**kwargs)
         self.name = kwargs['name']
         self.location = kwargs['location']
-        self.template_dir = kwargs['template_dir']
         self.library_dir = kwargs['library_dir']
         self.stories = []
         self.current_story = 0
@@ -104,7 +161,7 @@ class SingleLibrary(Widget):
                                       title=story.stem,
                                       location=story,
                                       number=i)
-                new_story.load_story_config(self.template_dir, self.library_dir)
+                new_story.load_story_config(self.library_dir)
                 self.stories.append(new_story)
             i += 1
 
@@ -238,11 +295,11 @@ class StoryBook(Widget):
     # List of all pages by name
     pages = ListProperty()
 
-    # The name of this story's template
-    template = StringProperty(None)
-
     # The parsed story config
     story_config = ObjectProperty(None)
+
+    # The defaults file
+    story_config_file = StringProperty(None)
 
     # Where is the title media?
     title_media_location = StringProperty(None)
@@ -267,26 +324,14 @@ class StoryBook(Widget):
         self.current_page = "title"
         self.current_page_no = 0
         self.pages = []
+        self.story_config_file = ""
 
-    def load_story_config(self, template_dir, library_dir):
+    def load_story_config(self, library_dir):
+        self.story_config_file = str(library_dir.joinpath(self.title + '.ini'))
         self.story_config = ConfigParser()
 
-        tmp_config = ConfigParser()
-        tmp_config.read(str(library_dir) + '/' + self.title + '.ini')
-
-        # Get story template
-        self.template = tmp_config.get('template', 'name')
-
-        if not self.template.endswith('.ini'):
-            self.template = self.template + '.ini'
-
-        template_location = template_dir.joinpath(self.template)
-
-        # Set defaults from story .ini file
-        self.story_config.setall('DEFAULT', dict(tmp_config.items('values')))
-
-        # Set config from story's template. Values will be interpolated from above DEFAULT.
-        self.story_config.read(str(template_location))
+        # Set config from story's config file.
+        self.story_config.read(str(self.story_config_file))
 
         # Find the media type (image, video) for this story's title page
         self.title_media = self.story_config.get('title', 'media')
@@ -327,13 +372,12 @@ class StoryBook(Widget):
 class Creator(Screen):
     state = StringProperty(None)
     creator_grid = ObjectProperty
-    templates = ListProperty()
     stories = DictProperty()
+    settings_panel = ObjectProperty()
 
     def __init__(self, **kwargs):
         super(Creator, self).__init__(**kwargs)
         self.state = "new"
-        self.templates = []
         self.stories = {}
 
     def on_pre_leave(self):
@@ -351,75 +395,54 @@ class Creator(Screen):
         self.app.menu.librarybutton.state = 'normal'
         self.assemble_layout()
 
-    def assemble_layout(self):
+    def assemble_layout(self, **kwargs):
         print "Assembling layout"
         self.creator_grid = self.ids.creator_grid
 
         self.creator_grid.clear_widgets()
 
         if self.state == 'new_story':
-            self.assemble_new_story()
-        elif self.state == 'new_template':
-            self.assemble_new_template()
+            self.assemble_new_story(**kwargs)
         elif self.state == 'edit_story':
-            self.assemble_edit_story()
-        elif self.state == 'edit_template':
-            self.assemble_edit_template()
+            self.assemble_edit_story(**kwargs)
         elif self.state == 'new' or self.state is None:
             self.assemble_new_state()
 
     def assemble_new_state(self):
-        self.templates = []
         self.stories = {}
 
         for library in self.app.libraries.keys():
             for story in self.app.libraries[library].stories:
                 self.stories["{}: {}".format(library, story.title)] = {'library': library,
                                                                        'story': story}
-        for template in self.app.template_dir.iterdir():
-            if template.is_file():
-                self.templates.append(str(template.stem))
 
         story_button = Button(text='New Story', bold=True, size_hint_y=None,
                            background_normal='images/backgrounds/button.png',
                            on_release=partial(self.load_new_story))
 
-        template_button = Button(text='New Template', bold=True, size_hint_y=None,
-                              background_normal='images/backgrounds/button.png',
-                              on_release=partial(self.load_new_template))
-
         story_spinner = Spinner(text='Edit Story', size_hint_y=None, bold=True, values=self.stories.keys(),
                                      background_normal='images/backgrounds/button.png')
         story_spinner.bind(text=self.load_story)
-        template_spinner = Spinner(text='Edit Template', size_hint_y=None, bold=True, values=self.templates,
-                                        background_normal='images/backgrounds/button.png')
-        template_spinner.bind(text=self.load_template)
 
         self.creator_grid.add_widget(story_button)
-        self.creator_grid.add_widget(template_button)
         self.creator_grid.add_widget(story_spinner)
-        self.creator_grid.add_widget(template_spinner)
 
-    def assemble_new_story(self):
-        pass
+    def assemble_new_story(self, **kwargs):
+        self.add_new_settings()
 
-    def assemble_new_template(self):
-        pass
-
-    def assemble_edit_story(self):
-        pass
-
-    def assemble_edit_template(self):
-        pass
+    def assemble_edit_story(self, **kwargs):
+        story = kwargs['story']
+        library = kwargs['library']
+        settings_panel = LibrarySettings()
+        pages = story.story_config.get('title', 'pages').split(',')
+        settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title))
+        for page in pages:
+            settings_panel.add_json_panel(page, story.story_config, data=get_story_settings_page(story.title, page))
+        self.creator_grid.add_widget( settings_panel)
 
     def load_new_story(self, _):
         self.state = 'new_story'
         print "Loading new story"
-        self.assemble_layout()
-
-    def load_new_template(self, _):
-        self.state = 'new template'
-        print "Loading new template"
         self.assemble_layout()
 
     def load_story(self, _, text):
@@ -428,12 +451,7 @@ class Creator(Screen):
         story = self.stories[text]['story']
 
         print "Loading story. Library: {}, story: {}".format(library, story.title)
-        self.assemble_layout()
-
-    def load_template(self, _, text):
-        self.state = 'edit_template'
-        print "Loading template: {}".format(text)
-        self.assemble_layout()
+        self.assemble_layout(story=story, library=library)
 
 
 class EditStory(GridLayout):
@@ -442,17 +460,6 @@ class EditStory(GridLayout):
     def __init__(self, **kwargs):
         super(EditStory, self).__init__(**kwargs)
         self.name = kwargs['name']
-        self.template_dir = kwargs['template_dir']
-        self.library_dir = kwargs['library_dir']
-
-
-class EditTemplate(GridLayout):
-    name = StringProperty(None)
-
-    def __init__(self, **kwargs):
-        super(EditTemplate, self).__init__(**kwargs)
-        self.name = kwargs['name']
-        self.template_dir = kwargs['template_dir']
         self.library_dir = kwargs['library_dir']
 
 
@@ -468,8 +475,9 @@ class StoryPixiesApp(App):
     libraries = DictProperty()
     selected_library = StringProperty(None)
 
-    template_dir = ObjectProperty(None)
     library_dir = ObjectProperty(None)
+
+    story_settings = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         """
@@ -481,7 +489,6 @@ class StoryPixiesApp(App):
         super(StoryPixiesApp, self).__init__(**kwargs)
 
         # Initialize libraries from files
-        self.template_dir = (Path(__file__).parents[0].absolute() / "templates")
         self.library_dir = (Path(__file__).parents[0].absolute() / "libraries")
         self.add_libraries()
 
@@ -492,7 +499,6 @@ class StoryPixiesApp(App):
             print "Adding library {}".format(library.stem)
             self.libraries[library.stem] = SingleLibrary(name=library.stem,
                                                          location=library,
-                                                         template_dir=self.template_dir,
                                                          library_dir=self.library_dir.joinpath(library.stem))
 
         if len(self.libraries.keys()) == 0:
@@ -520,6 +526,9 @@ class StoryPixiesApp(App):
 
     def build(self):
         self.title = 'Story Pixies'
+        self.settings_cls = LibrarySettings
+        self.use_kivy_settings = False
+
         self.manager = ScreenManager(transition=FadeTransition())
 
         # Add a home screen where the user can change libraries
@@ -534,7 +543,7 @@ class StoryPixiesApp(App):
         self.story = Story(name='story')
         self.manager.add_widget(self.story)
 
-        # Add a creator screen where the user can create new stories and templates
+        # Add a creator screen where the user can create new stories
         self.creator = Creator(name='creator')
         self.manager.add_widget(self.creator)
 
@@ -547,6 +556,23 @@ class StoryPixiesApp(App):
         self.set_selected_library(self.selected_library)
 
         return self.top_grid
+
+    def build_config(self, config):
+        config.setdefaults('global', {'color': "0,0,0"})
+        for library in self.libraries:
+            config.setdefaults(library, {
+                'name': library,
+                'story_dir': str((Path(__file__).parents[0].absolute() / "libraries").joinpath(library))
+            })
+
+    def build_settings(self, settings):
+        settings.add_json_panel('Global', self.config, data=get_settings_json('global'))
+
+        for library in self.libraries:
+            settings.add_json_panel(library.capitalize(), self.config, data=get_settings_json(library))
+
+    def on_config_change(self, config, section, key, value):
+        print "Config change of {}. Section: {}, key: {}, value: {}".format(config, section, key, value)
 
     # Screen switching methods
     def home_screen(self, _):
