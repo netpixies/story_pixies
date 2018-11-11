@@ -79,11 +79,18 @@ class SingleLibrary(Widget):
     # The currently set story, defaults to the first
     current_story = NumericProperty(None)
 
+    # The directory to find templates
+    template_dir = ObjectProperty(None)
+
+    # This library's directory
+    library_dir = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         super(SingleLibrary, self).__init__(**kwargs)
         self.name = kwargs['name']
         self.location = kwargs['location']
         self.template_dir = kwargs['template_dir']
+        self.library_dir = kwargs['library_dir']
         self.stories = []
         self.current_story = 0
         self.add_stories()
@@ -96,7 +103,7 @@ class SingleLibrary(Widget):
                                       title=story.stem,
                                       location=story,
                                       number=i)
-                new_story.load_story_config(self.template_dir)
+                new_story.load_story_config(self.template_dir, self.library_dir)
                 self.stories.append(new_story)
             i += 1
 
@@ -259,12 +266,11 @@ class StoryBook(Widget):
         self.current_page_no = 0
         self.pages = []
 
-    def load_story_config(self, template_dir):
+    def load_story_config(self, template_dir, library_dir):
         self.story_config = ConfigParser()
 
-        story_dir = (Path(__file__).parents[0].absolute() / "libraries" / self.library_parent)
         tmp_config = ConfigParser()
-        tmp_config.read(str(story_dir) + '/' + self.title + '.ini')
+        tmp_config.read(str(library_dir) + '/' + self.title + '.ini')
 
         # Get story template
         self.template = tmp_config.get('template', 'name')
@@ -330,6 +336,26 @@ class Creator(Screen):
         self.app.menu.librarybutton.state = 'normal'
 
 
+class NewStory(GridLayout):
+    name = StringProperty(None)
+
+    def __init__(self, **kwargs):
+        self.name = kwargs['name']
+        self.template_dir = kwargs['template_dir']
+
+
+class NewTemplate(GridLayout):
+    pass
+
+
+class EditStory(GridLayout):
+    pass
+
+
+class EditTemplate(GridLayout):
+    pass
+
+
 class StoryPixiesApp(App):
     manager = ObjectProperty(None)
     home = ObjectProperty(None)
@@ -365,7 +391,8 @@ class StoryPixiesApp(App):
             print "Adding library {}".format(library.stem)
             self.libraries[library.stem] = SingleLibrary(name=library.stem,
                                                          location=library,
-                                                         template_dir=self.template_dir)
+                                                         template_dir=self.template_dir,
+                                                         library_dir=self.library_dir.joinpath(library.stem))
 
         if len(self.libraries.keys()) == 0:
             self.set_selected_library(None)
