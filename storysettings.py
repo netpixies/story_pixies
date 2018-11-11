@@ -34,10 +34,10 @@ def get_settings_json(name):
     return json.dumps(settings_json)
 
 
-def get_story_settings_title(name):
+def get_story_settings_title(name, library):
     settings_json = [
         {'type': 'title',
-         'title': "{} Title Page Settings".format(name)
+         'title': "{}: '{}' title page settings".format(library, name)
          },
         {'type': 'string',
          'title': 'Title Name',
@@ -71,10 +71,10 @@ def get_story_settings_title(name):
     return json.dumps(settings_json)
 
 
-def get_story_settings_page(name, page):
+def get_story_settings_page(name, page, library):
     settings_json = [
         {'type': 'title',
-         'title': "{} {} Settings".format(name, page)
+         'title': "{}: {} '{}' settings".format(library, name, page)
          },
         {'type': 'string',
          'title': 'Page Name',

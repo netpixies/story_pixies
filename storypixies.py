@@ -45,7 +45,6 @@ class LibraryOptions(SettingOptions):
 
 
 class StoryTextOptions(SettingString):
-
     popup = ObjectProperty(None, allownone=True)
 
     # Taken from SettingString... I saw no way of overriding the multiline setting
@@ -417,11 +416,11 @@ class Creator(Screen):
                                                                        'story': story}
 
         story_button = Button(text='New Story', bold=True, size_hint_y=None,
-                           background_normal='images/backgrounds/button.png',
-                           on_release=partial(self.load_new_story))
+                              background_normal='images/backgrounds/button.png',
+                              on_release=partial(self.load_new_story))
 
         story_spinner = Spinner(text='Edit Story', size_hint_y=None, bold=True, values=self.stories.keys(),
-                                     background_normal='images/backgrounds/button.png')
+                                background_normal='images/backgrounds/button.png')
         story_spinner.bind(text=self.load_story)
 
         self.creator_grid.add_widget(story_button)
@@ -435,10 +434,10 @@ class Creator(Screen):
         library = kwargs['library']
         settings_panel = LibrarySettings()
         pages = story.story_config.get('title', 'pages').split(',')
-        settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title))
+        settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title, library))
         for page in pages:
-            settings_panel.add_json_panel(page, story.story_config, data=get_story_settings_page(story.title, page))
-        self.creator_grid.add_widget( settings_panel)
+            settings_panel.add_json_panel(page, story.story_config, data=get_story_settings_page(story.title, page, library))
+        self.creator_grid.add_widget(settings_panel)
 
     def load_new_story(self, _):
         self.state = 'new_story'
@@ -496,10 +495,11 @@ class StoryPixiesApp(App):
         self.libraries = {}
 
         for library in self.library_dir.iterdir():
-            print "Adding library {}".format(library.stem)
-            self.libraries[library.stem] = SingleLibrary(name=library.stem,
-                                                         location=library,
-                                                         library_dir=self.library_dir.joinpath(library.stem))
+            if library.stem != 'Templates':
+                print "Adding library {}".format(library.stem)
+                self.libraries[library.stem] = SingleLibrary(name=library.stem,
+                                                             location=library,
+                                                             library_dir=self.library_dir.joinpath(library.stem))
 
         if len(self.libraries.keys()) == 0:
             self.set_selected_library(None)
