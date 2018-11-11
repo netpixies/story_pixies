@@ -33,11 +33,38 @@ def get_settings_json(name):
 
     return json.dumps(settings_json)
 
-
-def get_story_settings_title(name):
+def get_story_settings_meta(name, library):
     settings_json = [
         {'type': 'title',
-         'title': "{} Title Page Settings".format(name)
+         'title': "{}: '{}' metadata settings".format(library, name)
+         },
+        {'type': 'string',
+         'title': 'Story Name',
+         'desc': 'The name of the story',
+         'section': 'metadata',
+         'key': 'story'},
+        {'type': 'string',
+         'title': 'Library Name',
+         'desc': 'The name of the library',
+         'section': 'metadata',
+         'key': 'library'},
+        {'type': 'string',
+         'title': 'Author',
+         'desc': 'Story Author',
+         'section': 'title',
+         'key': 'author'},
+        {'type': 'page_settings',
+         'title': 'Pages in story',
+         'desc': 'Add, move or remove pages in the story',
+         'section': 'metadata',
+         'key': 'pages'}
+    ]
+    return json.dumps(settings_json)
+
+def get_story_settings_title(name, library):
+    settings_json = [
+        {'type': 'title',
+         'title': "{}: '{}' title page settings".format(library, name)
          },
         {'type': 'string',
          'title': 'Title Name',
@@ -49,11 +76,6 @@ def get_story_settings_title(name):
          'desc': 'Text for the title page',
          'section': 'title',
          'key': 'text'},
-        {'type': 'string',
-         'title': 'Author',
-         'desc': 'Story Author',
-         'section': 'title',
-         'key': 'author'},
         {'type': 'options',
          'title': 'Media Type',
          'desc': 'Image or Video type',
@@ -71,10 +93,10 @@ def get_story_settings_title(name):
     return json.dumps(settings_json)
 
 
-def get_story_settings_page(name, page):
+def get_story_settings_page(name, page, library):
     settings_json = [
         {'type': 'title',
-         'title': "{} {} Settings".format(name, page)
+         'title': "{}: {} '{}' settings".format(library, name, page)
          },
         {'type': 'string',
          'title': 'Page Name',
