@@ -34,10 +34,10 @@ def get_settings_json(name):
     return json.dumps(settings_json)
 
 
-def get_story_settings(name, pages=2):
+def get_story_settings_title(name):
     settings_json = [
         {'type': 'title',
-         'title': "{} Settings".format(name)
+         'title': "{} Title Page Settings".format(name)
          },
         {'type': 'string',
          'title': 'Title Name',
@@ -68,38 +68,42 @@ def get_story_settings(name, pages=2):
          'key': 'media_location',
          'dirselect': False}
     ]
+    return json.dumps(settings_json)
 
-    for i in range(1, pages + 1):
-        settings_json.append({
-            {'type': 'string',
-             'title': 'name',
-             'desc': 'The name of the Page',
-             'section': "page{}".format(str(i)),
-             'key': 'name'},
-            {'type': 'string',
-             'title': 'Page Name',
-             'desc': 'The name of the page',
-             'section': "page{}".format(str(i)),
-             'key': 'name'},
-            {'type': 'string',
-             'title': 'Page Text',
-             'desc': 'Text for this page',
-             'section': "page{}".format(str(i)),
-             'key': 'text'},
-            {'type': 'options',
-             'title': 'Media Type',
-             'desc': 'Image or Video type',
-             'options': ['image', 'video'],
-             'section': "page{}".format(str(i)),
-             'key': 'media'
-             },
-            {'type': 'path',
-             'title': 'Media Location',
-             'desc': 'Filename of the media',
-             'section': "page{}".format(str(i)),
-             'key': 'media_location',
-             'dirselect': False}
-        })
+
+def get_story_settings_page(name, page):
+    settings_json = [
+        {'type': 'title',
+         'title': "{} Settings".format(name)
+         },
+        {'type': 'string',
+         'title': 'name',
+         'desc': 'The name of the Page',
+         'section': page,
+         'key': 'name'},
+        {'type': 'string',
+         'title': 'Page Name',
+         'desc': 'The name of the page',
+         'section': page,
+         'key': 'name'},
+        {'type': 'string',
+         'title': 'Page Text',
+         'desc': 'Text for this page',
+         'section': page,
+         'key': 'text'},
+        {'type': 'options',
+         'title': 'Media Type',
+         'desc': 'Image or Video type',
+         'options': ['image', 'video'],
+         'section': page,
+         'key': 'media'
+         },
+        {'type': 'path',
+         'title': 'Media Location',
+         'desc': 'Filename of the media',
+         'section': page,
+         'key': 'media_location',
+         'dirselect': False}]
 
     return json.dumps(settings_json)
 

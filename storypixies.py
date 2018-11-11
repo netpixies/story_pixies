@@ -8,7 +8,7 @@ from kivy.uix.togglebutton import ToggleButton
 
 from pathlib import Path
 from functools import partial
-from storysettings import get_settings_json, get_new_settings
+from storysettings import get_settings_json, get_new_settings, get_story_settings_title, get_story_settings_page
 
 from kivy.app import App
 from kivy.config import ConfigParser
@@ -389,16 +389,11 @@ class Creator(Screen):
         story = kwargs['story']
         library = kwargs['library']
         settings_panel = Settings()
-        #settings_panel.bind(on_close=story.story_config.write)
-        settings_panel.add_json_panel('title', story.story_config, data=get_new_settings(library))
+        pages = story.story_config.get('title', 'pages').split(',')
+        settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title))
+        for page in pages:
+            settings_panel.add_json_panel(page, story.story_config, data=get_story_settings_page(page, page))
         self.creator_grid.add_widget( settings_panel)
-
-    #def assemble_edit_template(self, **kwargs):
-    #    template = kwargs['template']
-    #    settings_panel = Settings()
-    #    settings_panel.bind(on_close=story.story_config.write)
-    #    settings_panel.add_json_panel('title', story.story_config, data=get_new_settings(library))
-    #    self.creator_grid.add_widget( settings_panel)
 
     def load_new_story(self, _):
         self.state = 'new_story'
