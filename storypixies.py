@@ -38,6 +38,8 @@ class LibraryButton(Button):
 
 class LibraryOptions(SettingOptions):
     function_string = StringProperty()
+    def __init__(self, **kwargs):
+        super(LibraryOptions, self).__init__(**kwargs)
 
     def _create_popup(self, instance):
         story_list = (Path(__file__).parents[0].absolute() / "libraries" / instance.section).glob('**/*.ini')
@@ -93,14 +95,6 @@ class StoryTextOptions(SettingString):
 
         # all done, open the popup !
         popup.open()
-
-
-class LibrarySettings(SettingsWithSidebar):
-    def __init__(self, **kwargs):
-        super(LibrarySettings, self).__init__(**kwargs)
-        self.register_type('library_options', LibraryOptions)
-        self.register_type('story_text', StoryTextOptions)
-        self.register_type('page_settings', PageSettings)
 
 
 class Home(Screen):
@@ -453,37 +447,44 @@ class Creator(Screen):
         self.creator_grid.add_widget(add_page_spinner)
         self.creator_grid.add_widget(story_spinner)
 
+    def setup_settings_panel(self):
+        self.settings_panel = Settings()
+        self.settings_panel.register_type('library_options', LibraryOptions)
+        self.settings_panel.register_type('story_text', StoryTextOptions)
+        self.settings_panel.register_type('page_settings', PageSettings)
+
     def assemble_new_story(self, **kwargs):
         self.add_new_settings()
 
     def assemble_edit_story(self, **kwargs):
         story = kwargs['story']
         library = kwargs['library']
-        settings_panel = LibrarySettings()
+        self.setup_settings_panel()
+
         pages = story.story_config.get('metadata', 'pages').split(',')
-        settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title, library))
+        self.settings_panel.add_json_panel('title', story.story_config, data=get_story_settings_title(story.title, library))
         for page in pages:
-            settings_panel.add_json_panel(page, story.story_config,
+            self.settings_panel.add_json_panel(page, story.story_config,
                                           data=get_story_settings_page(story.title, page, library))
-        self.creator_grid.add_widget(settings_panel)
+        self.creator_grid.add_widget(self.settings_panel)
 
     def assemble_edit_metadata(self, **kwargs):
         story = kwargs['story']
         library = kwargs['library']
-        settings_panel = LibrarySettings()
-        settings_panel.add_json_panel('metadata', story.story_config,
+        self.setup_settings_panel()
+        self.settings_panel.add_json_panel('metadata', story.story_config,
                                       data=get_story_settings_metadata(story.title, library))
-        self.creator_grid.add_widget(settings_panel)
+        self.creator_grid.add_widget(self.settings_panel)
 
     def add_new_page(self, **kwargs):
         page = kwargs['page']
         story = kwargs['story']
         library = kwargs['library']
 
-        settings_panel = LibrarySettings()
+        self.setup_settings_panel()
         story.story_config.setdefaults(page, {'name': 'New page', 'text': 'New page text',
                                               'media': 'image', 'media_location': 'images/page.png'})
-        settings_panel.create_json_panel(page, story.story_config,
+        self.settings_panel.create_json_panel(page, story.story_config,
                                          data=get_story_settings_page(story.title, page, library))
         story.story_config.adddefaultsection(page)
         all_pages = story.story_config.get('metadata','pages')
@@ -599,7 +600,7 @@ class StoryPixiesApp(App):
 
     def build(self):
         self.title = 'Story Pixies'
-        self.settings_cls = LibrarySettings
+        #self.settings_cls = LibrarySettings
         self.use_kivy_settings = False
 
         self.manager = ScreenManager(transition=FadeTransition())
