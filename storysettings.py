@@ -58,7 +58,17 @@ def get_story_settings_metadata(name, library):
          'title': 'Pages in story',
          'desc': 'Add, move or remove pages in the story',
          'section': 'metadata',
-         'key': 'pages'}
+         'key': 'pages'},
+        {'type': 'buttons',
+         'title': 'Title',
+         'desc': 'Edit title page',
+         'section': 'metadata',
+         'key': 'buttons'},
+        {'type': 'buttons',
+         'title': 'Pages',
+         'desc': 'Edit pages',
+         'section': 'metadata',
+         'key': 'buttons'}
     ]
     return json.dumps(settings_json)
 
