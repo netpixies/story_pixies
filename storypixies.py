@@ -464,13 +464,13 @@ class Creator(Screen):
                                    values=self.app.libraries.keys(),
                                    background_normal='images/backgrounds/button-blue-normal.png')
         new_story_button = Button(text="Create", size_hint_y=0.1, background_normal='images/backgrounds/button-blue-normal.png')
-        new_story_button.bind(on_release=self.load_new_story)
+        new_story_button.bind(on_release=partial(self.load_new_story, library_selector))
 
         story_selector = Spinner(text='Choose Story', size_hint_y=0.1,
                                  values=self.stories.keys(),
                                  background_normal='images/backgrounds/button-blue-normal.png')
         edit_story_button = Button(text="Edit", size_hint_y=0.1, background_normal='images/backgrounds/button-blue-normal.png')
-        edit_story_button.bind(on_release=self.load_story)
+        edit_story_button.bind(on_release=partial(self.load_story, story_selector))
 
         self.creator_grid.add_widget(Widget(size_hint_y=0.1))
         self.creator_grid.add_widget(Widget(size_hint_y=0.1))
@@ -486,10 +486,15 @@ class Creator(Screen):
 
         self.creator_grid.add_widget(Widget(size_hint_y=0.9))
 
-    def load_new_story(self, _, text):
+    def load_new_story(self, library, _):
+        if library.text == 'Select Library' or library.text == 'Invalid Selection':
+            print "Bad value selected"
+            library.text = 'Invalid Selection'
+            return
+
         self.setup_settings_panel()
-        self.set_library = text
-        self.create_new_story(text)
+        self.set_library = library.text
+        self.create_new_story(library.text)
 
     def setup_settings_panel(self):
         self.settings_panel = Settings()
@@ -498,10 +503,15 @@ class Creator(Screen):
         self.settings_panel.register_type('page_settings', PageSettings)
         self.settings_panel.register_type('buttons', SettingButtons)
 
-    def load_story(self, _, text):
+    def load_story(self, story, _):
+        if story.text == 'Choose Story' or story.text == 'Invalid Selection':
+            print "Bad value selected"
+            story.text = 'Invalid Selection'
+            return
+
         self.setup_settings_panel()
-        self.set_story = self.stories[text]['story']
-        self.set_library = self.stories[text]['library']
+        self.set_story = self.stories[story.text]['story']
+        self.set_library = self.stories[story.text]['library']
         self.app.story_metadata_screen(self)
 
 
