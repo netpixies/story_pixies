@@ -4,12 +4,25 @@
 #: import partial functools.partial
 
 
+<StoryPixiesApp>:
+    canvas.before:
+        Color:
+            rgba: (0.98, 0.965, 0.719, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
 <MainMenu>:
+    canvas.before:
+        Color:
+            rgba: (0.98, 0.965, 0.719, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
     rows: 1
     size_hint: (1, None)
     height: 50
-    spacing: 5
-    padding: 5
+
     homebutton: homebutton
     librarybutton: librarybutton
     storybutton: storybutton
@@ -50,15 +63,20 @@
     background_normal: 'images/backgrounds/button.png'
     font_size: 60
     bold: True
-    outline_width: 10
     italic: True
     height: 200
     size_hint_y: None
-    outline_color: (0,0,0,0)
+    color: (1,1,1,1)
     on_press: app.set_selected_library(self.text)
     on_release: app.library_screen(self)
 
 <Home>:
+    canvas.before:
+        Color:
+            rgba: (0.98, 0.965, 0.719, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
     libraries: app.libraries
     app: app
 
@@ -66,6 +84,10 @@
         id: home_grid
         rows: 1
         spacing: 10
+        padding: 10
+        RstDocument:
+            background_color: (0.98, 0.965, 0.719, 1)
+            text: "Welcome to Storypixies!\n---------------\nTo continue, please select a library on the right."
         ScrollView:
             bar_width: 0
             id: library_scroll_view
@@ -95,7 +117,12 @@
 
 <Library>:
     app: app
-
+    canvas.before:
+        Color:
+            rgba: (0.98, 0.965, 0.719, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
     BoxLayout:
         size_hint_y: None
 
@@ -103,29 +130,30 @@
         id: story_layout
         cols: 4
         rows: 8
-
+        padding: 10
+        spacing: 10
         Button:
             text: 'Back'
-            bold: True
             on_press: story_button.text = app.get_library_object().prev_story()
             on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
-            background_normal: 'images/backgrounds/button.png'
+            color: (0.08, 0.32, 0.93, 1)
+            background_normal: 'images/backgrounds/button-yellow.png'
 
-        Label:
+        Button:
             colspan: 2
             text: story_button.text
             font_size: 30
-            bold: True
-            outline_width: 10
             italic: True
-            outline_color: (0,0,0,0)
+            disabled: True
+            color: (0.08, 0.32, 0.93, 1)
+            background_disabled_normal: 'images/backgrounds/button-yellow.png'
 
         Button:
             text: 'Next'
             on_press: story_button.text = app.get_library_object().next_story()
             on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
-            bold: True
-            background_normal: 'images/backgrounds/button.png'
+            color: (0.08, 0.32, 0.93, 1)
+            background_normal: 'images/backgrounds/button-yellow.png'
 
         Button:
             id: story_button
@@ -136,7 +164,7 @@
             size_hint_x: 1
             font_size: 0
             on_release: app.story_screen(self)
-            background_normal: 'images/backgrounds/button.png'
+            background_normal: 'images/backgrounds/button-yellow.png'
 
             Image:
                 id: story_button_image
@@ -150,6 +178,12 @@
 
 <Story>:
     app: app
+    canvas.before:
+        Color:
+            rgba: (0.98, 0.965, 0.719, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
     GridLayout:
         id: story_book_grid
         cols: 2
@@ -162,9 +196,17 @@
 <Creator>:
     app: app
     creator_grid: creator_grid
+
+    canvas.before:
+        Color:
+            rgba: (0.98, 0.965, 0.719, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
     GridLayout:
-        cols: 1
-        rows: 4
+        cols: 3
+        padding: 10
+        spacing: 10
         id: creator_grid
 
 <StoryMetaData>:

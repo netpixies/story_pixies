@@ -34,6 +34,17 @@ def get_settings_json(name):
     return json.dumps(settings_json)
 
 
+def get_metadata_defaults(name, library, pages='page1'):
+    settings_json = {
+        'story': name,
+        'library': library,
+        'author': 'anonymous',
+        'pages': pages
+    }
+
+    return settings_json
+
+
 def get_story_settings_metadata(name, library):
     settings_json = [
         {'type': 'title',
@@ -103,6 +114,17 @@ def get_story_settings_title(name, library):
          'dirselect': False}
     ]
     return json.dumps(settings_json)
+
+
+def get_page_defaults(name):
+    settings_json = {
+        'name': name,
+        'text': "Welcome to Storypixies! It looks like you need some content here.",
+        'media': 'image',
+        'media_location': 'images/backgrounds/1.png'
+    }
+
+    return settings_json
 
 
 def get_story_settings_page(name, page, library):
