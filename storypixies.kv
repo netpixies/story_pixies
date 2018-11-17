@@ -33,34 +33,34 @@
         state: 'down'
         text: 'Home'
         on_press: app.home_screen(self)
-        background_normal: 'images/backgrounds/button.png'
-        background_down: 'images/backgrounds/3.png'
+        background_normal: 'images/backgrounds/button-blue-normal.png'
+        background_down: 'images/backgrounds/button-blue-down.png'
     ToggleButton:
         id: librarybutton
         group: 'mainmenu'
         text: 'Library'
         on_press: app.library_screen(self)
-        background_normal: 'images/backgrounds/button.png'
-        background_down: 'images/backgrounds/3.png'
+        background_normal: 'images/backgrounds/button-blue-normal.png'
+        background_down: 'images/backgrounds/button-blue-down.png'
     ToggleButton:
         id: storybutton
         group: 'mainmenu'
         text: 'Story'
         on_press: app.story_screen(self)
-        background_normal: 'images/backgrounds/button.png'
-        background_down: 'images/backgrounds/3.png'
+        background_normal: 'images/backgrounds/button-blue-normal.png'
+        background_down: 'images/backgrounds/button-blue-down.png'
     ToggleButton:
         id: creatorbutton
         group: 'mainmenu'
         text: 'Creator'
         on_press: app.creator_screen(self)
-        background_normal: 'images/backgrounds/button.png'
-        background_down: 'images/backgrounds/3.png'
+        background_normal: 'images/backgrounds/button-blue-normal.png'
+        background_down: 'images/backgrounds/button-blue-down.png'
 
 
 <LibraryButton>:
     libraries: app.libraries
-    background_normal: 'images/backgrounds/button.png'
+    background_normal: 'images/backgrounds/button-blue-normal.png'
     font_size: 60
     bold: True
     italic: True
@@ -137,7 +137,7 @@
             on_press: story_button.text = app.get_library_object().prev_story()
             on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
             color: (0.08, 0.32, 0.93, 1)
-            background_normal: 'images/backgrounds/button-yellow.png'
+            background_normal: 'images/backgrounds/button-yellow-normal.png'
 
         Button:
             colspan: 2
@@ -146,14 +146,14 @@
             italic: True
             disabled: True
             color: (0.08, 0.32, 0.93, 1)
-            background_disabled_normal: 'images/backgrounds/button-yellow.png'
+            background_disabled_normal: 'images/backgrounds/button-yellow-normal.png'
 
         Button:
             text: 'Next'
             on_press: story_button.text = app.get_library_object().next_story()
             on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
             color: (0.08, 0.32, 0.93, 1)
-            background_normal: 'images/backgrounds/button-yellow.png'
+            background_normal: 'images/backgrounds/button-yellow-normal.png'
 
         Button:
             id: story_button
@@ -164,7 +164,7 @@
             size_hint_x: 1
             font_size: 0
             on_release: app.story_screen(self)
-            background_normal: 'images/backgrounds/button-yellow.png'
+            background_normal: 'images/backgrounds/button-yellow-normal.png'
 
             Image:
                 id: story_button_image

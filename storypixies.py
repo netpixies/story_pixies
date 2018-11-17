@@ -272,12 +272,12 @@ class Story(Screen):
         self.media_property = self.get_media_display()
         story_back_button = Button(text="Back",
                                    size_hint_y=0.1,
-                                   background_normal='images/backgrounds/button.png',
-                                   bold=True)
+                                   color=(0.08, 0.32, 0.93, 1),
+                                   background_normal='images/backgrounds/button-yellow-normal.png')
         story_next_button = Button(text="Next",
                                    size_hint_y=0.1,
-                                   background_normal='images/backgrounds/button.png',
-                                   bold=True)
+                                   color=(0.08, 0.32, 0.93, 1),
+                                   background_normal='images/backgrounds/button-yellow-normal.png')
         story_back_button.bind(on_release=self.prev_page)
         story_next_button.bind(on_release=self.next_page)
         top_grid.add_widget(d)
@@ -462,29 +462,29 @@ class Creator(Screen):
         new_story_text = TextInput(text='New Story', size_hint_y=0.1)
         library_selector = Spinner(text='Select Library', size_hint_y=0.1,
                                    values=self.app.libraries.keys(),
-                                   background_normal='images/backgrounds/button-blue.png')
-        new_story_button = Button(text="Create", size_hint_y=0.1, background_normal='images/backgrounds/button-blue.png')
+                                   background_normal='images/backgrounds/button-blue-normal.png')
+        new_story_button = Button(text="Create", size_hint_y=0.1, background_normal='images/backgrounds/button-blue-normal.png')
         new_story_button.bind(on_release=self.load_new_story)
 
         story_selector = Spinner(text='Choose Story', size_hint_y=0.1,
                                  values=self.stories.keys(),
-                                 background_normal='images/backgrounds/button-blue.png')
-        edit_story_button = Button(text="Edit", size_hint_y=0.1, background_normal='images/backgrounds/button-blue.png')
+                                 background_normal='images/backgrounds/button-blue-normal.png')
+        edit_story_button = Button(text="Edit", size_hint_y=0.1, background_normal='images/backgrounds/button-blue-normal.png')
         edit_story_button.bind(on_release=self.load_story)
 
-        self.creator_grid.add_widget(Widget(size_hint_y=0.1, background_normal='images/backgrounds/button.png'))
-        self.creator_grid.add_widget(Widget(size_hint_y=0.1, background_normal='images/backgrounds/button.png'))
-        self.creator_grid.add_widget(Widget(size_hint_y=0.1, background_normal='images/backgrounds/button.png'))
+        self.creator_grid.add_widget(Widget(size_hint_y=0.1))
+        self.creator_grid.add_widget(Widget(size_hint_y=0.1))
+        self.creator_grid.add_widget(Widget(size_hint_y=0.1))
 
         self.creator_grid.add_widget(new_story_text)
         self.creator_grid.add_widget(library_selector)
         self.creator_grid.add_widget(new_story_button)
 
-        self.creator_grid.add_widget(Widget(size_hint_y=0.1, background_normal='images/backgrounds/button.png'))
+        self.creator_grid.add_widget(Widget(size_hint_y=0.1))
         self.creator_grid.add_widget(story_selector)
         self.creator_grid.add_widget(edit_story_button)
 
-        self.creator_grid.add_widget(Widget(size_hint_y=0.9, background_normal='images/backgrounds/button.png'))
+        self.creator_grid.add_widget(Widget(size_hint_y=0.9))
 
     def load_new_story(self, _, text):
         self.setup_settings_panel()
