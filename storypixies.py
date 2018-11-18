@@ -468,12 +468,12 @@ class Creator(Screen):
         self.assemble_layout()
 
     def get_box_title(self, text='Title'):
-        return Button(text=text, bold=True, size_hint_y=0.04,
+        return Button(text=text, bold=True, size_hint_y=0.1,
                                   background_normal='images/backgrounds/button-blue-down.png')
 
     def get_edit_story_box(self):
         # Edit story Box
-        edit_story_box = BoxLayout(orientation='horizontal', padding=20, spacing=10, size_hint_y=0.1)
+        edit_story_box = BoxLayout(orientation='horizontal', padding=20, spacing=10, size_hint_y=0.3)
 
         edit_story_spinner = Spinner(text='Select Story', bold=True,
                                      values=self.stories.keys(),
@@ -489,7 +489,7 @@ class Creator(Screen):
 
     def get_copy_story_box(self):
         # Copy Story Box
-        copy_story_box = BoxLayout(orientation='horizontal', padding=20, spacing=10, size_hint_y=0.1)
+        copy_story_box = BoxLayout(orientation='horizontal', padding=20, spacing=10, size_hint_y=0.3)
         copy_story_text = TextInput(text='New Story Name')
         copy_story_library_selector = Spinner(text='Library Destination',
                                               values=self.app.libraries.keys(),
@@ -523,9 +523,9 @@ class Creator(Screen):
 
         self.creator_grid.add_widget(self.get_box_title(text='Edit a Story!'))
         self.creator_grid.add_widget(self.get_edit_story_box())
-        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.04))
+        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.1))
 
-        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.04))
+        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.1))
 
         self.creator_grid.add_widget(self.get_box_title(text='Create or Copy Story'))
         self.creator_grid.add_widget(self.get_copy_story_box())
