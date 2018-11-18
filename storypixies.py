@@ -8,7 +8,6 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 from kivy.metrics import dp
-
 from pathlib import Path
 from functools import partial
 from storysettings import get_settings_json, get_story_settings_metadata, get_story_settings_title, \
@@ -35,6 +34,8 @@ class MainMenu(GridLayout):
 
 class LibrarySettings(SettingsWithSidebar):
 
+    story = ObjectProperty()
+
     def __init__(self, **kwargs):
         super(LibrarySettings, self).__init__(**kwargs)
         self.register_type('library_options', LibraryOptions)
@@ -42,20 +43,12 @@ class LibrarySettings(SettingsWithSidebar):
         self.register_type('page_settings', PageSettings)
         self.register_type('buttons', SettingButtons)
 
-    def on_config_change(self, config, section, key, value):
-        print "Changing config {} {} {} {}".format(config, section, key, value)
-        if section == "metadata" and key == "pages":
-            print "TODO: Update pages in story config on pages change in metadata"
-
-        super(LibrarySettings, self).on_config_change(config, section, key, value)
-
 
 class LibraryButton(Button):
     pass
 
 
 class LibraryOptions(SettingOptions):
-    function_string = StringProperty()
 
     def __init__(self, **kwargs):
         super(LibraryOptions, self).__init__(**kwargs)
@@ -297,11 +290,11 @@ class Story(Screen):
         self.media_property = self.get_media_display()
         story_back_button = Button(text="Back",
                                    bold=True,
-                                   size_hint_y=0.1,
+                                   size_hint_y=0.05,
                                    background_normal='images/backgrounds/button-blue-normal.png')
         story_next_button = Button(text="Next",
                                    bold=True,
-                                   size_hint_y=0.1,
+                                   size_hint_y=0.05,
                                    background_normal='images/backgrounds/button-blue-normal.png')
         story_back_button.bind(on_release=self.prev_page)
         story_next_button.bind(on_release=self.next_page)
@@ -309,7 +302,6 @@ class Story(Screen):
         top_grid.add_widget(story_next_button)
         top_grid.add_widget(d)
         top_grid.add_widget(self.media_property)
-
 
     def prev_page(self, _):
         if self.current_story.current_page == 'title':
@@ -474,6 +466,49 @@ class Creator(Screen):
         self.settings_panel = None
         self.assemble_layout()
 
+    def get_box_title(self, text='Title'):
+        return Button(text=text, bold=True, size_hint_y=0.04,
+                                  background_normal='images/backgrounds/button-blue-down.png')
+
+    def get_edit_story_box(self):
+        # Edit story Box
+        edit_story_box = BoxLayout(orientation='horizontal', padding=20, spacing=10, size_hint_y=0.1)
+
+        edit_story_spinner = Spinner(text='Select Story', bold=True,
+                                     values=self.stories.keys(),
+                                     background_normal='images/backgrounds/button-blue-normal.png')
+        edit_story_submit = Button(text="Submit", bold=True,
+                                   background_normal='images/backgrounds/button-blue-normal.png')
+        edit_story_submit.bind(on_release=partial(self.load_story, edit_story_spinner))
+        edit_story_box.add_widget(Widget())
+        edit_story_box.add_widget(Widget())
+        edit_story_box.add_widget(edit_story_spinner)
+        edit_story_box.add_widget(edit_story_submit)
+        return edit_story_box
+
+    def get_copy_story_box(self):
+        # Copy Story Box
+        copy_story_box = BoxLayout(orientation='horizontal', padding=20, spacing=10, size_hint_y=0.1)
+        copy_story_text = TextInput(text='New Story Name')
+        copy_story_library_selector = Spinner(text='Library Destination',
+                                              values=self.app.libraries.keys(),
+                                              bold=True,
+                                              background_normal='images/backgrounds/button-blue-normal.png')
+        copy_story_story_selector = Spinner(text='Select Story',
+                                            values=['New Story'] + self.stories.keys(),
+                                            bold=True,
+                                            background_normal='images/backgrounds/button-blue-normal.png')
+        copy_story_submit = Button(text="Submit", bold=True,
+                                   background_normal='images/backgrounds/button-blue-normal.png')
+        copy_story_submit.bind(on_release=partial(self.load_copy_story,
+                                                  copy_story_story_selector,
+                                                  copy_story_library_selector))
+        copy_story_box.add_widget(copy_story_text)
+        copy_story_box.add_widget(copy_story_story_selector)
+        copy_story_box.add_widget(copy_story_library_selector)
+        copy_story_box.add_widget(copy_story_submit)
+        return copy_story_box
+
     def assemble_layout(self, **kwargs):
         print "Assembling layout"
         self.creator_grid = self.ids.creator_grid
@@ -485,63 +520,63 @@ class Creator(Screen):
                 self.stories["{}: {}".format(library, story.title)] = {'library': library,
                                                                        'story': story}
 
-        new_story_text = TextInput(text='New Story', size_hint_y=0.1)
-        library_selector = Spinner(text='Select Library', size_hint_y=0.1,
-                                   values=self.app.libraries.keys(),
-                                   bold=True,
-                                   background_normal='images/backgrounds/button-blue-normal.png')
-        new_story_button = Button(text="Create", size_hint_y=0.1, bold=True, background_normal='images/backgrounds/button-blue-normal.png')
-        new_story_button.bind(on_release=partial(self.load_new_story, library_selector))
+        self.creator_grid.add_widget(self.get_box_title(text='Edit a Story!'))
+        self.creator_grid.add_widget(self.get_edit_story_box())
+        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.04))
 
-        story_selector = Spinner(text='Choose Story', size_hint_y=0.1,
-                                 values=self.stories.keys(),
-                                 bold=True,
-                                 background_normal='images/backgrounds/button-blue-normal.png')
-        edit_story_button = Button(text="Edit", size_hint_y=0.1, bold=True, background_normal='images/backgrounds/button-blue-normal.png')
-        edit_story_button.bind(on_release=partial(self.load_story, story_selector))
+        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.04))
 
-        self.creator_grid.add_widget(Widget(size_hint_y=0.1))
-        self.creator_grid.add_widget(Widget(size_hint_y=0.1))
-        self.creator_grid.add_widget(Widget(size_hint_y=0.1))
+        self.creator_grid.add_widget(self.get_box_title(text='Create or Copy Story'))
+        self.creator_grid.add_widget(self.get_copy_story_box())
 
-        self.creator_grid.add_widget(new_story_text)
-        self.creator_grid.add_widget(library_selector)
-        self.creator_grid.add_widget(new_story_button)
+        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.8))
 
-        self.creator_grid.add_widget(Widget(size_hint_y=0.1))
-        self.creator_grid.add_widget(story_selector)
-        self.creator_grid.add_widget(edit_story_button)
-
-        self.creator_grid.add_widget(Widget(size_hint_y=0.9))
-
-    def load_new_story(self, library, _):
-        if library.text == 'Select Library' or library.text == 'Invalid Selection':
+    def load_copy_story(self, story, library, _):
+        if story.text == 'Select Story' or story.text == 'Invalid Selection':
             print "Bad value selected"
-            library.text = 'Invalid Selection'
+            story.text = 'Invalid Selection'
             return
 
+        if library.text == 'Library Destination' or library.text == 'Invalid Selection':
+            print "Bad value selected"
+            library.text = 'Invalid Selection'
+
+        if story.text == 'New Story':
+            self.create_new_story(library.text)
+        else:
+            self.copy_story(story, library.text)
+
         self.setup_settings_panel()
-        self.set_library = library.text
-        self.create_new_story(library.text)
 
     def setup_settings_panel(self):
         self.settings_panel = LibrarySettings()
 
         self.settings_panel.bind(on_close=self.dismiss_settings_panel)
+        self.settings_panel.bind(on_config_change=partial(self.story_config_change))
 
     def dismiss_settings_panel(self, _):
         self.app.creator_screen(self)
 
+    def story_config_change(self, _, config, section, key, value):
+        print "Changing config {} {} {} {}".format(config, section, key, value)
+        if section == "metadata" and key == "pages":
+            print "Changed value is: {}".format(value)
+            if value in self.set_story.pages:
+                config.set(section, key, value)
+            else:
+                self.set_story.pages = value.split(',')
+            print ""
 
     def load_story(self, story, _):
-        if story.text == 'Choose Story' or story.text == 'Invalid Selection':
+        if story.text == 'Select Story' or story.text == 'Invalid Selection':
             print "Bad value selected"
             story.text = 'Invalid Selection'
             return
 
-        self.setup_settings_panel()
         self.set_story = self.stories[story.text]['story']
         self.set_library = self.stories[story.text]['library']
+        self.setup_settings_panel()
+
         self.app.story_metadata_screen(self)
 
 
@@ -805,6 +840,41 @@ class StoryPixiesApp(App):
         button.state = 'down'
 
         self.manager.current = screen_name
+
+    def intro_text(self):
+        return """
+========================
+Welcome to Storypixies!
+========================
+***************
+About
+***************
+Storypixies is a tool to create video self-modeling stories to help children master partially
+learned skills. It is particuarly helpful for autistic children, but it can work for all!
+
+It can also be used to assemble stories of upcoming events to help children pre-adjust for a big
+change. Going on a long trip? Check out *Taking a Trip* stories.
+
+***************
+Get Started!
+***************
+1. Choose a library on the right to view the available stories.
+2. Choose a story to read.
+3. Select 'Creator' to edit current stories, or create your own!
+
+**********************
+Note to Peer Reviewers
+**********************
+Still on the roadmap:
+
+- GUI Refinement
+- Default story content
+- Start/stop points in videos to eliminate some pre-editing
+- Add media from direct capture or from url
+- New stories from scratch
+- Known bug: occassional freeze on startup, wait or restart it
+
+        """
 
 
 if __name__ == '__main__':

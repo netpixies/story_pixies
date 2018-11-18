@@ -7,7 +7,7 @@
 <StoryPixiesApp>:
     canvas.before:
         Color:
-            rgba: (0.98, 0.965, 0.719, 1)
+            rgba: (0.99, 0.98, 0.86, 1)
         Rectangle:
             pos: self.pos
             size: self.size
@@ -15,7 +15,7 @@
 <MainMenu>:
     canvas.before:
         Color:
-            rgba: (0.98, 0.965, 0.719, 1)
+            rgba: (0.99, 0.98, 0.86, 1)
         Rectangle:
             pos: self.pos
             size: self.size
@@ -76,7 +76,7 @@
 <Home>:
     canvas.before:
         Color:
-            rgba: (0.98, 0.965, 0.719, 1)
+            rgba: (0.99, 0.98, 0.86, 1)
         Rectangle:
             pos: self.pos
             size: self.size
@@ -85,22 +85,24 @@
 
     GridLayout:
         id: home_grid
-        rows: 1
+
+        cols: 3
         spacing: 10
         padding: 10
+
         RstDocument:
-            background_color: (0.98, 0.965, 0.719, 1)
-            text: "Welcome to Storypixies!\n---------------\nTo continue, please select a library on the right."
+            background_color: (0.99, 0.98, 0.86, 1)
+            text: app.intro_text()
+            size_hint_x: 1
         ScrollView:
             bar_width: 0
             id: library_scroll_view
-            size_hint_x: 1
+            size_hint_x: 0.4
             size_hint_y: None
             size: (win.Window.width,win.Window.height)
             GridLayout:
                 id: library_grid
                 cols: 1
-                size_hint_y: None
                 size_hint_x: 1
                 spacing: 10
                 padding: 10
@@ -108,8 +110,8 @@
                 on_touch_move: slider.value = self.scroll_y
 
         Slider:
-            size_hint_x: None
-            width: root.width*0.2
+            size_hint_x: 0.05
+            width: root.width*0.05
             id: slider
             min: 0
             max: 1
@@ -122,7 +124,7 @@
     app: app
     canvas.before:
         Color:
-            rgba: (0.98, 0.965, 0.719, 1)
+            rgba: (0.99, 0.98, 0.86, 1)
         Rectangle:
             pos: self.pos
             size: self.size
@@ -132,7 +134,7 @@
     SimpleTableLayout:
         id: story_layout
         cols: 4
-        rows: 8
+        rows: 22
 
         Button:
             text: 'Back'
@@ -158,7 +160,7 @@
         Button:
             id: story_button
             colspan: 4
-            rowspan: 7
+            rowspan: 21
             current_story: app.get_library_object().current_story
             size_hint_y: None
             size_hint_x: 1
@@ -181,13 +183,14 @@
     app: app
     canvas.before:
         Color:
-            rgba: (0.98, 0.965, 0.719, 1)
+            rgba: (0.99, 0.98, 0.86, 1)
         Rectangle:
             pos: self.pos
             size: self.size
     GridLayout:
         id: story_book_grid
         cols: 2
+        spacing: 30
 
 <StoryBook>:
     app: app
@@ -199,15 +202,16 @@
 
     canvas.before:
         Color:
-            rgba: (0.98, 0.965, 0.719, 1)
+            rgba: (0.99, 0.98, 0.86, 1)
         Rectangle:
             pos: self.pos
             size: self.size
-    GridLayout:
-        cols: 3
+    BoxLayout:
+        orientation: 'vertical'
         padding: 10
         spacing: 10
         id: creator_grid
+
 
 <StoryMetaData>:
     app: app
