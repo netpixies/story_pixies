@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import kivy
 from kivy.uix.settings import SettingOptions, SettingsWithTabbedPanel, SettingsWithSidebar, Settings, SettingItem, \
     SettingTitle, SettingsPanel, SettingSpacer, SettingString
