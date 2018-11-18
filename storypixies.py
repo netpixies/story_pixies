@@ -277,10 +277,12 @@ class Story(Screen):
         d = self.get_story_display()
         self.media_property = self.get_media_display()
         story_back_button = Button(text="Back",
+                                   bold=True,
                                    size_hint_y=0.1,
                                    color=(0.08, 0.32, 0.93, 1),
                                    background_normal='images/backgrounds/button-yellow-normal.png')
         story_next_button = Button(text="Next",
+                                   bold=True,
                                    size_hint_y=0.1,
                                    color=(0.08, 0.32, 0.93, 1),
                                    background_normal='images/backgrounds/button-yellow-normal.png')
@@ -468,14 +470,16 @@ class Creator(Screen):
         new_story_text = TextInput(text='New Story', size_hint_y=0.1)
         library_selector = Spinner(text='Select Library', size_hint_y=0.1,
                                    values=self.app.libraries.keys(),
+                                   bold=True,
                                    background_normal='images/backgrounds/button-blue-normal.png')
-        new_story_button = Button(text="Create", size_hint_y=0.1, background_normal='images/backgrounds/button-blue-normal.png')
+        new_story_button = Button(text="Create", size_hint_y=0.1, bold=True, background_normal='images/backgrounds/button-blue-normal.png')
         new_story_button.bind(on_release=partial(self.load_new_story, library_selector))
 
         story_selector = Spinner(text='Choose Story', size_hint_y=0.1,
                                  values=self.stories.keys(),
+                                 bold=True,
                                  background_normal='images/backgrounds/button-blue-normal.png')
-        edit_story_button = Button(text="Edit", size_hint_y=0.1, background_normal='images/backgrounds/button-blue-normal.png')
+        edit_story_button = Button(text="Edit", size_hint_y=0.1, bold=True, background_normal='images/backgrounds/button-blue-normal.png')
         edit_story_button.bind(on_release=partial(self.load_story, story_selector))
 
         self.creator_grid.add_widget(Widget(size_hint_y=0.1))
