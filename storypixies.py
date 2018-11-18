@@ -262,6 +262,11 @@ class Story(Screen):
         self.current_story = self.app.get_library_object().get_story()
         self.assemble_layout()
 
+    def on_pre_leave(self):
+        if self.media_property is not None:
+            self.media_property.state = 'stop'
+
+
     def assemble_layout(self):
         if self.media_property is not None:
             self.media_property.state = 'stop'
