@@ -176,6 +176,11 @@ def get_story_settings_page(name, page, library):
          'title': 'Title',
          'desc': 'Edit title page',
          'section': page,
+         'key': 'buttons'},
+        {'type': 'buttons',
+         'title': 'Add',
+         'desc': 'Add a new page',
+         'section': page,
          'key': 'buttons'}
     ]
 
