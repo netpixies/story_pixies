@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import kivy
+import sys
 from kivy.uix.settings import SettingOptions, SettingsWithTabbedPanel, SettingsWithSidebar, Settings, SettingItem, \
     SettingTitle, SettingsPanel, SettingSpacer, SettingString
 from kivy.uix.spinner import Spinner
@@ -715,6 +716,7 @@ class StoryPixiesApp(App):
         super(StoryPixiesApp, self).__init__(**kwargs)
 
         # Initialize libraries from files
+        self.creator_disabled = kwargs.get('creator_disabled')
         self.library_dir = (Path(__file__).parents[0].absolute() / "libraries")
         self.add_libraries()
 
@@ -821,7 +823,8 @@ class StoryPixiesApp(App):
         self.switch_screen('story', self.menu.storybutton)
 
     def creator_screen(self, _):
-        self.switch_screen('creator', self.menu.creatorbutton)
+        if not self.creator_disabled:
+            self.switch_screen('creator', self.menu.creatorbutton)
 
     def story_metadata_screen(self, _):
         self.creator.setup_settings_panel()
@@ -863,14 +866,12 @@ Get Started!
 3. Select 'Creator' to edit current stories, or create your own!
 
 **********************
-Note to Peer Reviewers
+Roadmap
 **********************
-Still on the roadmap:
 
 - GUI Refinement
 - Default story content
 - Start/stop points in videos to eliminate some pre-editing
-- Add media from direct capture or from url
 - New stories from scratch
 - Known bug: occassional freeze on startup, wait or restart it
 
@@ -878,4 +879,7 @@ Still on the roadmap:
 
 
 if __name__ == '__main__':
-    StoryPixiesApp().run()
+    if len(sys.argv) > 1 and sys.argv[1] == 'kid-mode':
+        StoryPixiesApp(creator_disabled=True).run()
+    else:
+        StoryPixiesApp().run()
