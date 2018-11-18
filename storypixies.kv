@@ -133,33 +133,27 @@
         id: story_layout
         cols: 4
         rows: 8
-        padding: 10
-        spacing: 10
+
         Button:
             text: 'Back'
             bold: True
             on_press: story_button.text = app.get_library_object().prev_story()
             on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
-            color: (0.08, 0.32, 0.93, 1)
-            background_normal: 'images/backgrounds/button-yellow-normal.png'
+            background_normal: 'images/backgrounds/button-blue-normal.png'
 
         Button:
+            text: story_button.text + ": Click to Read Now!"
             colspan: 2
-            text: story_button.text
-            font_size: 30
             bold: True
-            italic: True
-            disabled: True
-            color: (0.08, 0.32, 0.93, 1)
-            background_disabled_normal: 'images/backgrounds/button-yellow-normal.png'
+            on_release: app.story_screen(self)
+            background_normal: 'images/backgrounds/button-blue-normal.png'
 
         Button:
             text: 'Next'
             bold: True
             on_press: story_button.text = app.get_library_object().next_story()
             on_release: story_button_image.source = app.get_library_object().get_story().get_story_media()
-            color: (0.08, 0.32, 0.93, 1)
-            background_normal: 'images/backgrounds/button-yellow-normal.png'
+            background_normal: 'images/backgrounds/button-blue-normal.png'
 
         Button:
             id: story_button
@@ -194,7 +188,6 @@
     GridLayout:
         id: story_book_grid
         cols: 2
-        spacing: '8dp'
 
 <StoryBook>:
     app: app
@@ -226,9 +219,19 @@
 
 <StoryTitle>:
     app: app
+    story_title_grid: story_title_grid
+    GridLayout:
+        cols: 1
+        rows: 4
+        id: story_title_grid
 
 <StoryPages>:
     app: app
+    story_pages_grid: story_pages_grid
+    GridLayout:
+        cols: 1
+        rows: 4
+        id: story_pages_grid
 
 <SettingButtons>:
     app: app

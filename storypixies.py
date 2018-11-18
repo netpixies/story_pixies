@@ -33,6 +33,23 @@ class MainMenu(GridLayout):
     pass
 
 
+class LibrarySettings(SettingsWithSidebar):
+
+    def __init__(self, **kwargs):
+        super(LibrarySettings, self).__init__(**kwargs)
+        self.register_type('library_options', LibraryOptions)
+        self.register_type('story_text', StoryTextOptions)
+        self.register_type('page_settings', PageSettings)
+        self.register_type('buttons', SettingButtons)
+
+    def on_config_change(self, config, section, key, value):
+        print "Changing config {} {} {} {}".format(config, section, key, value)
+        if section == "metadata" and key == "pages":
+            print "TODO: Update pages in story config on pages change in metadata"
+
+        super(LibrarySettings, self).on_config_change(config, section, key, value)
+
+
 class LibraryButton(Button):
     pass
 
@@ -75,6 +92,9 @@ class SettingButtons(SettingItem):
 
         if instance.ID == "Pages_settings_button":
             self.app.story_pages_screen(self)
+
+        if instance.ID == "Metadata_settings_button":
+            self.app.story_metadata_screen(self)
 
         print "Button hit"
 
@@ -267,7 +287,6 @@ class Story(Screen):
         if self.media_property is not None:
             self.media_property.state = 'stop'
 
-
     def assemble_layout(self):
         if self.media_property is not None:
             self.media_property.state = 'stop'
@@ -279,19 +298,18 @@ class Story(Screen):
         story_back_button = Button(text="Back",
                                    bold=True,
                                    size_hint_y=0.1,
-                                   color=(0.08, 0.32, 0.93, 1),
-                                   background_normal='images/backgrounds/button-yellow-normal.png')
+                                   background_normal='images/backgrounds/button-blue-normal.png')
         story_next_button = Button(text="Next",
                                    bold=True,
                                    size_hint_y=0.1,
-                                   color=(0.08, 0.32, 0.93, 1),
-                                   background_normal='images/backgrounds/button-yellow-normal.png')
+                                   background_normal='images/backgrounds/button-blue-normal.png')
         story_back_button.bind(on_release=self.prev_page)
         story_next_button.bind(on_release=self.next_page)
-        top_grid.add_widget(d)
-        top_grid.add_widget(self.media_property)
         top_grid.add_widget(story_back_button)
         top_grid.add_widget(story_next_button)
+        top_grid.add_widget(d)
+        top_grid.add_widget(self.media_property)
+
 
     def prev_page(self, _):
         if self.current_story.current_page == 'title':
@@ -316,7 +334,7 @@ class Story(Screen):
                                  size_hint_y=1,
                                  halign="center",
                                  valign="middle",
-                                 color=(0,0,0,1),
+                                 color=(0, 0, 0, 1),
                                  background_color=(0.98, 0.965, 0.719, 1))
 
         return story_text_label
@@ -507,11 +525,13 @@ class Creator(Screen):
         self.create_new_story(library.text)
 
     def setup_settings_panel(self):
-        self.settings_panel = Settings()
-        self.settings_panel.register_type('library_options', LibraryOptions)
-        self.settings_panel.register_type('story_text', StoryTextOptions)
-        self.settings_panel.register_type('page_settings', PageSettings)
-        self.settings_panel.register_type('buttons', SettingButtons)
+        self.settings_panel = LibrarySettings()
+
+        self.settings_panel.bind(on_close=self.dismiss_settings_panel)
+
+    def dismiss_settings_panel(self, _):
+        self.app.creator_screen(self)
+
 
     def load_story(self, story, _):
         if story.text == 'Choose Story' or story.text == 'Invalid Selection':
@@ -533,7 +553,6 @@ class StoryMetadata(Screen):
         super(StoryMetadata, self).__init__(**kwargs)
 
     def on_pre_enter(self, *args):
-        print "Foo"
         self.story = self.app.creator.set_story
         self.library = self.app.creator.set_library
         self.assemble_layout()
@@ -546,7 +565,7 @@ class StoryMetadata(Screen):
         self.app.creator.settings_panel.add_json_panel('metadata', self.story.story_config,
                                                        data=get_story_settings_metadata(self.story.title,
                                                                                         self.library))
-        self.story_metadata_grid.add_widget(self.app.creator.settings_panel)
+        story_metadata_grid.add_widget(self.app.creator.settings_panel)
         print "done"
 
     def add_new_page(self, **kwargs):
@@ -567,21 +586,51 @@ class StoryMetadata(Screen):
 
 
 class StoryTitle(Screen):
+    story = ObjectProperty()
+    library = StringProperty()
+
     def __init__(self, **kwargs):
         super(StoryTitle, self).__init__(**kwargs)
 
     def on_pre_enter(self, *args):
-        print "Entering title"
+        self.story = self.app.creator.set_story
+        self.library = self.app.creator.set_library
+        self.assemble_layout()
+
+    def assemble_layout(self):
+        story_title_grid = self.ids.story_title_grid
+        story_title_grid.clear_widgets()
+        self.app.creator.setup_settings_panel()
+        self.app.creator.settings_panel.add_json_panel('title', self.story.story_config,
+                                                       data=get_story_settings_title(self.story.title,
+                                                                                     self.library))
+        story_title_grid.add_widget(self.app.creator.settings_panel)
 
 
 class StoryPages(Screen):
-    page = StringProperty(None)
+    pages = StringProperty(None)
+    story = ObjectProperty()
+    library = StringProperty()
 
     def __init__(self, **kwargs):
         super(StoryPages, self).__init__(**kwargs)
 
     def on_pre_enter(self, *args):
-        print "Entering pages"
+        self.story = self.app.creator.set_story
+        self.library = self.app.creator.set_library
+        self.pages = ','.join(self.story.pages[1:])
+        self.assemble_layout()
+
+    def assemble_layout(self):
+        story_pages_grid = self.ids.story_pages_grid
+        story_pages_grid.clear_widgets()
+        self.app.creator.setup_settings_panel()
+        for page in self.story.pages[1:]:
+            self.app.creator.settings_panel.add_json_panel(page, self.story.story_config,
+                                                           data=get_story_settings_page(self.story.title,
+                                                                                        page,
+                                                                                        self.library))
+        story_pages_grid.add_widget(self.app.creator.settings_panel)
 
     def assemble_edit_story(self, **kwargs):
         story = kwargs['story']
@@ -597,7 +646,6 @@ class StoryPages(Screen):
         self.creator_grid.add_widget(self.settings_panel)
 
     def load_story(self, _, text):
-        self.state = 'edit_story'
         library = self.stories[text]['library']
         story = self.stories[text]['story']
 

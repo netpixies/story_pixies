@@ -51,12 +51,14 @@ def get_story_settings_metadata(name, library):
          'title': "{}: '{}' metadata settings".format(library, name)
          },
         {'type': 'string',
-         'title': 'Story Name',
+         'title': 'Story Name (Read only)',
+         'disabled': True,
          'desc': 'The name of the story',
          'section': 'metadata',
          'key': 'story'},
         {'type': 'string',
-         'title': 'Library Name',
+         'title': 'Library Name (Read only)',
+         'disabled': True,
          'desc': 'The name of the library',
          'section': 'metadata',
          'key': 'library'},
@@ -111,7 +113,17 @@ def get_story_settings_title(name, library):
          'desc': 'Filename of the media',
          'section': 'title',
          'key': 'media_location',
-         'dirselect': False}
+         'dirselect': False},
+        {'type': 'buttons',
+         'title': 'Metadata',
+         'desc': 'Edit metadata page',
+         'section': 'title',
+         'key': 'buttons'},
+        {'type': 'buttons',
+         'title': 'Pages',
+         'desc': 'Edit pages',
+         'section': 'title',
+         'key': 'buttons'}
     ]
     return json.dumps(settings_json)
 
@@ -154,7 +166,18 @@ def get_story_settings_page(name, page, library):
          'desc': 'Filename of the media',
          'section': page,
          'key': 'media_location',
-         'dirselect': False}]
+         'dirselect': False},
+        {'type': 'buttons',
+         'title': 'Metadata',
+         'desc': 'Edit metadata',
+         'section': page,
+         'key': 'buttons'},
+        {'type': 'buttons',
+         'title': 'Title',
+         'desc': 'Edit title page',
+         'section': page,
+         'key': 'buttons'}
+    ]
 
     return json.dumps(settings_json)
 
