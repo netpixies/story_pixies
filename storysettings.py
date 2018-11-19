@@ -34,7 +34,7 @@ def get_settings_json(name):
     return json.dumps(settings_json)
 
 
-def get_metadata_defaults(name, library, pages='page1'):
+def get_metadata_defaults(name, library, pages='1'):
     settings_json = {
         'story': name,
         'library': library,
@@ -115,11 +115,6 @@ def get_story_settings_title(name, library):
          'key': 'media_location',
          'dirselect': False},
         {'type': 'buttons',
-         'title': 'Metadata',
-         'desc': 'Edit metadata page',
-         'section': 'title',
-         'key': 'buttons'},
-        {'type': 'buttons',
          'title': 'Pages',
          'desc': 'Edit pages',
          'section': 'title',
@@ -131,9 +126,9 @@ def get_story_settings_title(name, library):
 def get_page_defaults(name):
     settings_json = {
         'name': name,
-        'text': "Welcome to Storypixies! It looks like you need some content here.",
+        'text': "Add content here.",
         'media': 'image',
-        'media_location': 'images/backgrounds/1.png'
+        'media_location': 'images/background.png'
     }
 
     return settings_json
@@ -142,7 +137,7 @@ def get_page_defaults(name):
 def get_story_settings_page(name, page, library):
     settings_json = [
         {'type': 'title',
-         'title': "{}: {} '{}' settings".format(library, name, page)
+         'title': "{}: {} 'page {}' settings".format(library, name, page)
          },
         {'type': 'string',
          'title': 'Page Name',
@@ -167,11 +162,6 @@ def get_story_settings_page(name, page, library):
          'section': page,
          'key': 'media_location',
          'dirselect': False},
-        {'type': 'buttons',
-         'title': 'Metadata',
-         'desc': 'Edit metadata',
-         'section': page,
-         'key': 'buttons'},
         {'type': 'buttons',
          'title': 'Title',
          'desc': 'Edit title page',
