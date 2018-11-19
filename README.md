@@ -1,58 +1,15 @@
 # Storypixies
 
-## Video Tour
-Want to check it out before installing? See the [Storypixies Tour](https://youtu.be/kmsz7FFOG1o)
+### Video Self Modeling, Feedforward 
 
-## Installation
+One of the techniques of VSM is feedforward. This involves multiple sessions of capturing video of the individual performing a task. The video is then edited into a single clip capturing only the positive aspects of the task, essentially showing the subject performing the task completely from start to finish without mistake. Such a technique is useful when a child is working on a new skill which they have difficulty performing. For example, if the target goal is independently getting dressed, they would splice together video of the child laying out clothes on the bed and pulling on each piece of clothing. The editor would remove any prompts to produce a final video of the child performing all of the steps in sequence with no prompting or mistakes. 
 
-### Current Supported Platforms
-#### Mac
+One of its biggest drawbacks, however, is the difficulty in assembling each video. There is overwhelming support for the effectiveness of VSM, however few schools implement it due to the difficulty in editing and producing the videos. (Bellini & McConnell, Strength-Based Educational Programming for Students with Autism Spectrum Disorders: A Case for Video Self-Modeling, 2010) One such issue with editing is the necessity to maintain a continuity in the video. If the video clips were broken into smaller discrete pieces separated by naturally occurring transitions and supported by a framework to assemble them, it should be easier to implement this methodology. 
 
-- Download the dmg from [Google Drive](https://drive.google.com)
-- Open the dmg and drag to Applications
-- Under Applications, right click and open storypixies
-- Uninstall by moving the Storypixies application to the trash
+### Story Pixies, a VSM Framework 
 
-#### Ubuntu Linux
-It is recommended to use a VM.
+Story Pixies is meant to be a framework application which enables parents or teachers to easily assemble a VSM story featuring the child in order to teach generalizable life and social skills. A caregiver can use the framework as a basis for personalizing a VSM story library which the child can use to view the video stories which feature them. The natural progression of a story requires turning pages to show the next scene. This can serve as a natural break to eliminate a feeling of discontinuity that might otherwise occur when splitting two scenes together. 
 
-- [Install Kivy](https://kivy.org/doc/stable/installation/installation-linux.html)
+### Bibliography
 
-```
-sudo add-apt-repository ppa:kivy-team/kivy
-sudo apt-get update
-sudo apt-get install python-kivy
-```
-- Install gstreamer for audio, video
-
-```
-sudo apt-get install -y \
-    libgstreamer1.0 \
-    gstreamer1.0-plugins-base \
-    gstreamer1.0-plugins-good
-```
-- Install dependencies
-
-```
-sudo pip install pathlib2 kivy-garden
-sudo garden install simpletablelayout
-```
-
-- Clone the repo
-
-```
-git clone https://github.com/netpixies/storypixies.git
-```
-
-- Run main
-
-```
-cd storypixies
-python main.py
-```
-
-#### Windows
-Not yet supported
-
-#### Android and IOS
-Not yet supported
+Bellini, S., & McConnell, L. (2010). Strength-Based Educational Programming for Students with Autism Spectrum Disorders: A Case for Video Self-Modeling. Preventing School Failure: Alternative Education for Children and Youth, 220-227. 
