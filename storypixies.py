@@ -397,6 +397,10 @@ class StoryBook(Widget):
             self.story_config.set('metadata', 'story', self.title)
             self.story_config.write()
 
+        if self.story_config.get('metadata', 'library') != self.library_parent:
+            self.story_config.set('metadata', 'library', self.library_parent)
+            self.story_config.write()
+
         # Find the media type (image, video) for this story's title page
         self.title_media = self.story_config.get('title', 'media')
 
@@ -565,7 +569,6 @@ class Creator(Screen):
         self.app.story_title_screen(self)
 
     def copy_story(self, story, library, new_name):
-        
         if self.stories[story.text]['library'] == library:
             source_story_file = Path(self.stories[story.text]['story'].story_config_file)
             dest_story_file = source_story_file.parent.joinpath("{}.ini".format(new_name))
@@ -579,6 +582,18 @@ class Creator(Screen):
             self.set_library = library
             self.setup_settings_panel()
         else:
+            source_story_file = Path(self.stories[story.text]['story'].story_config_file)
+            dest_story_file = self.app.library_dir.joinpath(library).joinpath("{}.ini".format(new_name))
+            dest_story_file.write_bytes(source_story_file.read_bytes())
+            new_story = self.app.libraries[library].add_new_story(new_name)
+            if new_story is None:
+                return None
+
+            self.add_story(library, new_story)
+            self.set_story = new_story
+            self.set_library = library
+            self.setup_settings_panel()
+
             print "Different library copy"
 
     def create_new_story(self, library, name):
