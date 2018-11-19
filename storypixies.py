@@ -517,7 +517,7 @@ class Creator(Screen):
         self.set_story.pages.append(new_page)
         title = config.get('metadata', 'story')
         library = config.get('metadata', 'library')
-        config.set('metadata', 'pages', "{},{}".format(','.join(pages), new_page))
+        config.set('metadata', 'pages', "{}".format(','.join(pages[1:])))
         config.setdefaults(new_page, get_page_defaults(new_page))
         self.settings_panel.add_json_panel(new_page, config,
                                            data=get_story_settings_page(title,
