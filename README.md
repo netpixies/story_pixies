@@ -8,7 +8,7 @@ Want to check it out before installing? See the [Storypixies Tour](https://youtu
 ### Current Supported Platforms
 #### Mac
 
-- Download the dmg (711MB) from [Google Drive](https://drive.google.com/open?id=1m6WMrFLurgOJdwwa2RJ3AjCDORFY7evU)
+- Download the dmg (330MB) from [Google Drive](https://drive.google.com/open?id=1m6WMrFLurgOJdwwa2RJ3AjCDORFY7evU) - md5sum 65a4f272f8e4f4e3d57676967a12a7f1
 - Open the dmg and drag to Applications
 - Under Applications, right click and open storypixies
 - Uninstall by moving the Storypixies application to the trash
