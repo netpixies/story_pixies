@@ -8,7 +8,7 @@ Want to check it out before installing? See the [Storypixies Tour](https://youtu
 ### Current Supported Platforms
 #### Mac
 
-- Download the dmg from [Google Drive](https://drive.google.com)
+- Download the dmg (711MB) from [Google Drive](https://drive.google.com/open?id=1m6WMrFLurgOJdwwa2RJ3AjCDORFY7evU)
 - Open the dmg and drag to Applications
 - Under Applications, right click and open storypixies
 - Uninstall by moving the Storypixies application to the trash
@@ -16,7 +16,7 @@ Want to check it out before installing? See the [Storypixies Tour](https://youtu
 #### Ubuntu Linux
 It is recommended to use a VM.
 
-- [Install Kivy](https://kivy.org/doc/stable/installation/installation-linux.html)
+- The following link is summed up below. [Install Kivy](https://kivy.org/doc/stable/installation/installation-linux.html)
 
 ```
 sudo add-apt-repository ppa:kivy-team/kivy
