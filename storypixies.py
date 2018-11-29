@@ -459,6 +459,30 @@ class Creator(Screen):
         self.settings_panel = None
         self.assemble_layout()
 
+    def assemble_layout(self, **kwargs):
+        self.creator_grid = self.ids.creator_grid
+        self.creator_grid.clear_widgets()
+        self.stories = {}
+
+        for library in self.app.libraries.keys():
+            for story in self.app.libraries[library].stories:
+                self.add_story(library, story)
+
+        for library in self.app.templates.keys():
+            for story in self.app.templates[library].stories:
+                self.add_story(library, story)
+
+        self.creator_grid.add_widget(self.get_box_title(text='Edit a Story!'))
+        self.creator_grid.add_widget(self.get_edit_story_box())
+        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.1))
+
+        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.1))
+
+        self.creator_grid.add_widget(self.get_box_title(text='Create or Copy Story'))
+        self.creator_grid.add_widget(self.get_copy_story_box())
+
+        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.8))
+
     @staticmethod
     def get_box_title(text='Title'):
         return Button(text=text, bold=True, size_hint_y=0.1,
@@ -485,7 +509,7 @@ class Creator(Screen):
         copy_story_box = BoxLayout(orientation='horizontal', padding=20, spacing=10, size_hint_y=0.3)
         copy_story_text = TextInput(text='New Story Name')
         copy_story_library_selector = Spinner(text='Library Destination',
-                                              values=self.app.libraries.keys(),
+                                              values=self.app.libraries.keys() + self.app.templates.keys(),
                                               bold=True,
                                               background_normal='images/backgrounds/button-blue-normal.png')
         copy_story_story_selector = Spinner(text='Select Story',
@@ -524,26 +548,6 @@ class Creator(Screen):
                                                                         new_page,
                                                                         library))
         config.write()
-
-    def assemble_layout(self, **kwargs):
-        self.creator_grid = self.ids.creator_grid
-        self.creator_grid.clear_widgets()
-        self.stories = {}
-
-        for library in self.app.libraries.keys():
-            for story in self.app.libraries[library].stories:
-                self.add_story(library, story)
-
-        self.creator_grid.add_widget(self.get_box_title(text='Edit a Story!'))
-        self.creator_grid.add_widget(self.get_edit_story_box())
-        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.1))
-
-        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.1))
-
-        self.creator_grid.add_widget(self.get_box_title(text='Create or Copy Story'))
-        self.creator_grid.add_widget(self.get_copy_story_box())
-
-        self.creator_grid.add_widget(BoxLayout(orientation='horizontal', size_hint_y=0.8))
 
     def load_copy_story(self, story, library, name, _):
         if story.text == 'Select Story' or story.text == 'Invalid Selection':
@@ -709,6 +713,7 @@ class StoryPixiesApp(App):
     top_grid = ObjectProperty(None)
 
     libraries = DictProperty()
+    templates = DictProperty()
     selected_library = StringProperty(None)
 
     library_dir = ObjectProperty(None)
@@ -729,13 +734,17 @@ class StoryPixiesApp(App):
 
     def add_libraries(self):
         self.libraries = {}
+        self.templates = {}
 
         for library in self.library_dir.iterdir():
             if library.stem != 'Templates':
                 self.libraries[library.stem] = SingleLibrary(name=library.stem,
                                                              location=library,
                                                              library_dir=self.library_dir.joinpath(library.stem))
-
+            else:
+                self.templates[library.stem] = SingleLibrary(name=library.stem,
+                                                             location=library,
+                                                             library_dir=self.library_dir.joinpath(library.stem))
         if len(self.libraries.keys()) == 0:
             self.set_selected_library(None)
         else:
@@ -801,7 +810,7 @@ class StoryPixiesApp(App):
         for library in self.libraries:
             config.setdefaults(library, {
                 'name': library,
-                'story_dir': str((Path(__file__).parents[0].absolute() / "libraries").joinpath(library))
+                'story_dir': str((Path(__file__).parents[0].absolute()).joinpath("libraries").joinpath(library))
             })
 
     def build_settings(self, settings):
