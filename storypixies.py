@@ -11,7 +11,8 @@ from kivy.metrics import dp
 from pathlib2 import Path
 from functools import partial
 
-from kivymd.menu import MDDropdownMenu
+from kivymd.menu import MDDropdownMenu, MDMenuItem
+from kivymd.textfields import MDTextField
 from storysettings import get_settings_json, get_story_settings_title, \
     get_story_settings_page, get_metadata_defaults, get_page_defaults
 from kivy.core.window import Window
@@ -32,7 +33,7 @@ from kivymd.button import MDIconButton, MDRaisedButton
 from kivymd.date_picker import MDDatePicker
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
-from kivymd.list import ILeftBody, ILeftBodyTouch, IRightBodyTouch, BaseListItem
+from kivymd.list import ILeftBody, ILeftBodyTouch, IRightBodyTouch, BaseListItem, IRightBody
 from kivymd.material_resources import DEVICE_TYPE
 from kivymd.navigationdrawer import MDNavigationDrawer, NavigationDrawerHeaderBase
 from kivymd.selectioncontrols import MDCheckbox
@@ -82,7 +83,6 @@ root_kv = '''
 
 NavigationLayout:
     id: nav_layout
-
     MDNavigationDrawer:
         id: nav_drawer
         NavigationDrawerToolbar:
@@ -90,7 +90,7 @@ NavigationLayout:
         NavigationDrawerIconButton:
             icon: 'checkbox-blank-circle'
             text: 'Help'
-            on_release: app.root.ids.manager.current = 'help'
+            on_release: app.manager.current = 'help'
         NavigationDrawerIconButton:
             icon: 'checkbox-blank-circle'
             text: 'Select Library'
@@ -98,7 +98,7 @@ NavigationLayout:
         NavigationDrawerIconButton:
             icon: 'checkbox-blank-circle'
             text: 'Creator'
-            on_release: app.root.ids.manager.current = 'creator'
+            on_release: app.creator_screen()
         NavigationDrawerIconButton:
             icon: 'checkbox-blank-circle'
             text: 'Colors'
@@ -160,22 +160,84 @@ NavigationLayout:
 
             Creator:
                 name: 'creator'
+                app: app
+                id: creator
+                edit_story_id: edit_story_id
                 ScrollView:
                     do_scroll_x: False
                     MDList:
                         id: creator_list
-                        TwoLineAvatarIconListItem:
-                            text: "Edit Stories"
-                            secondary_text: "Select a story to edit images, text, pages"
-                            CreatorImage:
-                                source: './assets/avatar.png'
-                            CreatorMenuButton:
-                                id: ri_icon
-                                icon: 'comment-text'
+                        NavigationDrawerToolbar:
+                            title: "Create and Edit Stories and Libraries"
 
-                        TwoLineListItem:
-                            text: "Create or Copy a Story"
-                            secondary_text: "Enter a story name, then select 'New Story' to create or choose a story to copy from"                    
+                        NavigationDrawerDivider:
+                        NavigationDrawerSubheader:
+                            text: "Edit Story"
+                        BoxLayout:
+                            rows: 4
+                            Widget:
+                            NavigationDrawerIconButton:
+                                id: edit_story_id
+                                icon: 'book-open-page-variant'
+                                text: "Click to Select"
+                                on_release: MDDropdownMenu(items=creator.get_edit_stories(), width_mult=4).open(self)
+                            MDRaisedButton:
+                                text: "Edit Now"
+                                on_release: creator.edit_story()
+                            Widget:
+
+                        NavigationDrawerDivider:
+                        NavigationDrawerSubheader:
+                            text: "New Story"
+                        BoxLayout:
+                            rows: 4
+                            spacing: 5
+                            Widget:
+                            MDTextField:
+                                id: new_story_box
+                                hint_text: "New story name"
+                                helper_text: "Choose a different name"
+                                helper_text_mode: "on_error"
+                            NavigationDrawerIconButton:
+                                text: "Create Story Now"
+                                icon: 'book-open-page-variant'
+                                on_release: creator.create_new_story(new_story_box.text)
+                            Widget:
+                            
+                        NavigationDrawerDivider:
+                        NavigationDrawerSubheader:
+                            text: "New Library"
+                        BoxLayout:
+                            rows: 4
+                            spacing: 5
+                            Widget:
+                            MDTextField:
+                                id: new_library_box
+                                hint_text: "New library name"
+                                helper_text: "Choose a different name"
+                                helper_text_mode: "on_error"
+                            NavigationDrawerIconButton:
+                                text: "Create Library Now"
+                                icon: 'bank'
+                                on_release: creator.create_new_library(new_library_box.text)
+                            Widget:
+                            
+                        NavigationDrawerDivider:
+                        NavigationDrawerSubheader:
+                            text: "Copy Story"
+                        BoxLayout:
+                            rows: 4
+                            Widget:
+                            MDTextField:
+                                hint_text: "New story name"
+                                helper_text: "Select a different story name"
+                                helper_text_mode: "on_error"
+                            MDRaisedButton:
+                                text: "Copy From (select)"
+                                on_release: MDDropdownMenu(items=creator.get_edit_stories(), width_mult=4).open(self)
+                            Widget:
+
+ 
             Screen:
                 name: 'colors'
                 BoxLayout:
@@ -196,27 +258,336 @@ NavigationLayout:
                         theme_text_color: 'Primary'
                         pos_hint: {'center_x': 0.5}
                         halign: 'center'
-
-<CreatorMenuButton>:
+            StoryTitle:
+                app: app
+                name: 'story_title'
+                story_title_grid: story_title_grid
+                GridLayout:
+                    cols: 1
+                    rows: 4
+                    id: story_title_grid
+            
+            StoryPages:
+                app: app
+                name: 'story_pages'
+                story_pages_grid: story_pages_grid
+                GridLayout:
+                    cols: 1
+                    rows: 4
+                    id: story_pages_grid
+                    
+<SettingButtons>:
     app: app
 '''
-
-
-
-class CreatorMenuButton(IRightBodyTouch, MDIconButton):
-    def on_release(self):
-        MDDropdownMenu(items=self.app.story_items, width_mult=4).open(self)
-
-class CreatorImage(ILeftBody, Image):
-    pass
 
 
 class Library(Screen):
     pass
 
 
+class LibrarySettings(SettingsWithSidebar):
+    story = ObjectProperty()
+
+    def __init__(self, **kwargs):
+        super(LibrarySettings, self).__init__(**kwargs)
+        self.register_type('library_options', LibraryOptions)
+        self.register_type('story_text', StoryTextOptions)
+        self.register_type('page_settings', PageSettings)
+        self.register_type('buttons', SettingButtons)
+
+
+class LibraryOptions(SettingOptions):
+
+    def __init__(self, **kwargs):
+        super(LibraryOptions, self).__init__(**kwargs)
+
+    def _create_popup(self, instance):
+        story_list = (Path(__file__).parents[0].absolute() / "libraries" / instance.section).glob('**/*.ini')
+        self.options = [l.stem for l in story_list]
+        super(LibraryOptions, self)._create_popup(instance)
+
+
+class SettingButtons(SettingItem):
+
+    def __init__(self, **kwargs):
+        self.register_event_type('on_release')
+        super(SettingItem, self).__init__(**kwargs)
+        o_button = Button(text=kwargs["title"], font_size='15sp')
+        o_button.ID = "{}_settings_button".format(kwargs["title"])
+        self.add_widget(o_button)
+        o_button.bind(on_release=self.setting_button_pressed)
+
+    def set_value(self, section, key, value):
+        # set_value normally reads the configparser values and runs on an error
+        # to do nothing here
+        return
+
+    def setting_button_pressed(self, instance):
+        self.panel.settings.dispatch('on_config_change',
+                                     self.panel.config,
+                                     self.section,
+                                     self.key,
+                                     instance.ID)
+        if instance.ID == "Title_settings_button":
+            self.app.story_title_screen()
+
+        if instance.ID == "Pages_settings_button":
+            self.app.story_pages_screen()
+
+        if instance.ID == "Add_settings_button":
+            self.app.creator.add_page(self.panel.config)
+
+
+class PageSettings(SettingString):
+    popup = ObjectProperty(None, allownone=True)
+
+    def on_value(self, instance, value):
+        super(PageSettings, self).on_value(instance, value)
+
+
+class StoryTextOptions(SettingString):
+    popup = ObjectProperty(None, allownone=True)
+
+    # Taken from SettingString... I saw no way of overriding the multiline setting
+    def _create_popup(self, instance):
+        # create popup layout
+        content = BoxLayout(orientation='vertical', spacing='5dp')
+        popup_width = min(0.95 * Window.width, dp(500))
+        self.popup = popup = Popup(
+            title=self.title, content=content, size_hint=(None, None),
+            size=(popup_width, '250dp'))
+
+        # create the textinput used for numeric input
+        self.textinput = textinput = TextInput(
+            text=self.value, font_size='24sp', multiline=True,
+            size_hint_y=None, height='96sp')
+        textinput.bind(on_text_validate=self._validate)
+        self.textinput = textinput
+
+        # construct the content, widget are used as a spacer
+        content.add_widget(Widget())
+        content.add_widget(textinput)
+        content.add_widget(Widget())
+        content.add_widget(SettingSpacer())
+
+        # 2 buttons are created for accept or cancel the current value
+        btnlayout = BoxLayout(size_hint_y=None, height='50dp', spacing='5dp')
+        btn = Button(text='Ok')
+        btn.bind(on_release=self._validate)
+        btnlayout.add_widget(btn)
+        btn = Button(text='Cancel')
+        btn.bind(on_release=self._dismiss)
+        btnlayout.add_widget(btn)
+        content.add_widget(btnlayout)
+
+        # all done, open the popup !
+        popup.open()
+
+
 class Creator(Screen):
-    pass
+    stories = DictProperty()
+    settings_panel = ObjectProperty(allownone=True)
+    set_story = ObjectProperty()
+    set_library = StringProperty()
+    story_items = ListProperty()
+
+    def __init__(self, **kwargs):
+        super(Creator, self).__init__(**kwargs)
+        self.stories = {}
+        self.story_items = {}
+
+    def on_pre_enter(self):
+        self.settings_panel = None
+        self.stories = {}
+
+        for library in self.app.libraries.keys():
+            for story in self.app.libraries[library].stories:
+                self.add_story(library, story)
+
+        for library in self.app.templates.keys():
+            for story in self.app.templates[library].stories:
+                self.add_story(library, story)
+
+    def setup_settings_panel(self):
+        self.settings_panel = LibrarySettings()
+        self.settings_panel.bind(on_close=self.dismiss_settings_panel)
+
+    def dismiss_settings_panel(self, _):
+        self.app.root.ids.manager.current = 'creator'
+
+    def edit_story(self):
+        if self.set_story is None or self.set_library is None:
+            Snackbar("Please select a story to edit first.").show()
+            return
+
+        self.setup_settings_panel()
+        self.app.root.ids.manager.current = 'story_title'
+
+    def add_story(self, library, story):
+        self.stories["{}: {}".format(library, story.title)] = {'library': library,
+                                                               'story': story}
+
+    def add_page(self, config):
+        pages = self.set_story.pages
+        if len(pages) == 0:
+            new_page = "1"
+        else:
+            new_page = str(int(pages[-1]) + 1)
+
+        self.set_story.pages.append(new_page)
+        title = config.get('metadata', 'story')
+        library = config.get('metadata', 'library')
+        config.set('metadata', 'pages', "{}".format(','.join(pages[1:])))
+        config.setdefaults(new_page, get_page_defaults(new_page))
+        self.settings_panel.add_json_panel(new_page, config,
+                                           data=get_story_settings_page(title,
+                                                                        new_page,
+                                                                        library))
+        config.write()
+
+    def copy_story(self, story, library, new_name):
+        if self.stories[story]['library'] == library:
+            source_story_file = Path(self.stories[story]['story'].story_config_file)
+            dest_story_file = source_story_file.parent.joinpath("{}.ini".format(new_name))
+            dest_story_file.write_bytes(source_story_file.read_bytes())
+            new_story = self.app.libraries[library].add_new_story(new_name)
+            if new_story is None:
+                return None
+
+            self.add_story(library, new_story)
+            self.set_story = new_story
+            self.set_library = library
+            self.setup_settings_panel()
+        else:
+            source_story_file = Path(self.stories[story]['story'].story_config_file)
+            dest_story_file = self.app.library_dir.joinpath(library).joinpath("{}.ini".format(new_name))
+            dest_story_file.write_bytes(source_story_file.read_bytes())
+            new_story = self.app.libraries[library].add_new_story(new_name)
+            if new_story is None:
+                return None
+
+            self.add_story(library, new_story)
+            self.set_story = new_story
+            self.set_library = library
+            self.setup_settings_panel()
+
+            print "Different library copy"
+
+    def create_new_story(self, library, name):
+        new_story = self.app.libraries[library].add_new_story(name)
+        if new_story is None:
+            return None
+
+        self.add_story(library, new_story)
+        self.set_story = new_story
+        self.set_library = library
+        self.setup_settings_panel()
+
+        new_page = str(int(self.set_story.pages[-1]))
+
+        self.set_story.story_config.setdefaults(new_page, get_page_defaults(new_page))
+        self.settings_panel.add_json_panel(new_page, self.set_story.story_config,
+                                           data=get_story_settings_page(self.set_story.title,
+                                                                        new_page,
+                                                                        library))
+        return new_story
+
+    def create_library(self, library, _):
+        if library.text in ["New Library Name", "Invalid Name", "Library Exists"]:
+            library.text = "Invalid Name"
+            return
+
+        library_path = self.app.library_dir.joinpath(library.text)
+        if library_path.exists():
+            library.text = "Library Exists"
+            return
+
+        library_path.mkdir()
+
+        self.app.libraries[library.text] = SingleLibrary(name=library.text, library_dir=library_path)
+        self.copy_story("Templates: All About You", library.text, "All About You")
+        self.setup_settings_panel()
+        self.app.story_title_screen(self)
+
+    def set_selections(self, library, story):
+        self.set_library = library
+        self.set_story = story
+        self.edit_story_id.text = "{}: {}".format(library, story.title)
+
+    def get_edit_stories(self):
+        story_item_list = []
+        for library in self.app.libraries.keys():
+            for story in self.app.libraries[library].stories:
+                story_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}: {}".format(library, story.title),
+                                        'on_release': partial(self.set_selections, library, story)})
+        for library in self.app.templates.keys():
+            for story in self.app.templates[library].stories:
+                story_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}: {}".format(library, story.title),
+                                        'on_release': partial(self.set_selections, library, story)})
+        return story_item_list
+
+
+class StoryTitle(Screen):
+    story = ObjectProperty()
+    library = StringProperty()
+
+    def __init__(self, **kwargs):
+        super(StoryTitle, self).__init__(**kwargs)
+
+    def on_pre_enter(self, *args):
+        self.story = self.app.creator.set_story
+        self.library = self.app.creator.set_library
+        self.assemble_layout()
+
+    def assemble_layout(self):
+        story_title_grid = self.story_title_grid
+        story_title_grid.clear_widgets()
+        self.app.creator.setup_settings_panel()
+        self.app.creator.settings_panel.add_json_panel('title', self.story.story_config,
+                                                       data=get_story_settings_title(self.story.title,
+                                                                                     self.library))
+        story_title_grid.add_widget(self.app.creator.settings_panel)
+
+
+class StoryPages(Screen):
+    pages = StringProperty(None)
+    story = ObjectProperty()
+    library = StringProperty()
+
+    def __init__(self, **kwargs):
+        super(StoryPages, self).__init__(**kwargs)
+
+    def on_pre_enter(self, *args):
+        self.story = self.app.creator.set_story
+        self.library = self.app.creator.set_library
+        self.pages = ','.join(self.story.pages[1:])
+        self.assemble_layout()
+
+    def assemble_layout(self):
+        story_pages_grid = self.story_pages_grid
+        story_pages_grid.clear_widgets()
+        self.app.creator.setup_settings_panel()
+        for page in self.story.pages[1:]:
+            self.app.creator.settings_panel.add_json_panel(page, self.story.story_config,
+                                                           data=get_story_settings_page(self.story.title,
+                                                                                        page,
+                                                                                        self.library))
+        story_pages_grid.add_widget(self.app.creator.settings_panel)
+
+    def assemble_edit_story(self, **kwargs):
+        story = kwargs['story']
+        library = kwargs['library']
+        self.setup_settings_panel()
+
+        pages = story.story_config.get('metadata', 'pages').split(',')
+        self.app.creator.settings_panel.add_json_panel('title', story.story_config,
+                                                       data=get_story_settings_title(story.title, library))
+        for page in pages:
+            self.app.creator.settings_panel.add_json_panel(page, story.story_config,
+                                                           data=get_story_settings_page(story.title, page, library))
+        self.creator_grid.add_widget(self.settings_panel)
 
 
 class SingleLibrary(Widget):
@@ -410,6 +781,7 @@ class StoryPixiesApp(App):
     theme_cls = ThemeManager()
     title = 'Story Pixies'
     manager = ObjectProperty(None)
+    creator = ObjectProperty(None)
 
     story = ObjectProperty(None)
     story_title = ObjectProperty(None)
@@ -421,7 +793,6 @@ class StoryPixiesApp(App):
 
     library_dir = ObjectProperty(None)
 
-    story_items = ListProperty(None)
 
     def __init__(self, **kwargs):
         """
@@ -436,26 +807,15 @@ class StoryPixiesApp(App):
         self.creator_disabled = kwargs.get('creator_disabled')
         self.library_dir = (Path(__file__).parents[0].absolute()).joinpath("libraries")
         self.add_libraries()
-        self.story_items = self.get_edit_stories()
 
     def build(self):
         root_widget = Builder.load_string(root_kv)
         self.title = 'Story Pixies'
         # self.settings_cls = LibrarySettings
         self.use_kivy_settings = False
+        self.creator = root_widget.ids.creator
+        self.manager = root_widget.ids.manager
         return root_widget
-
-    def get_edit_stories(self):
-        story_item_list = []
-        for library in self.libraries.keys():
-            for story in self.libraries[library].stories:
-                story_item_list.append({'viewclass': 'MDMenuItem',
-                                        'text': "{}: {}".format(library, story.title)})
-        for library in self.templates.keys():
-            for story in self.templates[library].stories:
-                story_item_list.append({'viewclass': 'MDMenuItem',
-                                        'text': "{}: {}".format(library, story.title)})
-        return story_item_list
 
     def add_libraries(self):
         self.libraries = {}
@@ -483,6 +843,22 @@ class StoryPixiesApp(App):
         else:
             self.selected_library = None
 
+    def creator_screen(self):
+        if not self.creator_disabled:
+            self.switch_screen('creator')
+        else:
+            Snackbar(text="Creator mode is disabled").show()
+
+    def story_title_screen(self):
+        self.creator.setup_settings_panel()
+        self.switch_screen('story_title')
+
+    def story_pages_screen(self):
+        self.creator.setup_settings_panel()
+        self.switch_screen('story_pages')
+
+    def switch_screen(self, screen_name):
+        self.manager.current = screen_name
 
     @staticmethod
     def intro_text():
