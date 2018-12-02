@@ -163,6 +163,9 @@ NavigationLayout:
                 app: app
                 id: creator
                 edit_story_id: edit_story_id
+                new_story_library_id: new_story_library_id
+                copy_story_from_box: copy_story_from_box
+                copy_story_library_id: copy_story_library_id
                 ScrollView:
                     do_scroll_x: False
                     MDList:
@@ -170,40 +173,25 @@ NavigationLayout:
                         NavigationDrawerToolbar:
                             title: "Create and Edit Stories and Libraries"
 
+
                         NavigationDrawerDivider:
                         NavigationDrawerSubheader:
                             text: "Edit Story"
                         BoxLayout:
                             rows: 4
                             Widget:
+                            Widget:
                             NavigationDrawerIconButton:
                                 id: edit_story_id
                                 icon: 'book-open-page-variant'
-                                text: "Click to Select"
+                                text: "Select Story"
+                                library: None
+                                story: None
                                 on_release: MDDropdownMenu(items=creator.get_edit_stories(), width_mult=4).open(self)
                             MDRaisedButton:
-                                text: "Edit Now"
-                                on_release: creator.edit_story()
-                            Widget:
-
-                        NavigationDrawerDivider:
-                        NavigationDrawerSubheader:
-                            text: "New Story"
-                        BoxLayout:
-                            rows: 4
-                            spacing: 5
-                            Widget:
-                            MDTextField:
-                                id: new_story_box
-                                hint_text: "New story name"
-                                helper_text: "Choose a different name"
-                                helper_text_mode: "on_error"
-                            NavigationDrawerIconButton:
-                                text: "Create Story Now"
-                                icon: 'book-open-page-variant'
-                                on_release: creator.create_new_story(new_story_box.text)
-                            Widget:
-                            
+                                text: "Edit"
+                                on_release: creator.edit_story(edit_story_id)
+                        
                         NavigationDrawerDivider:
                         NavigationDrawerSubheader:
                             text: "New Library"
@@ -211,32 +199,68 @@ NavigationLayout:
                             rows: 4
                             spacing: 5
                             Widget:
+                            Widget:
                             MDTextField:
                                 id: new_library_box
                                 hint_text: "New library name"
                                 helper_text: "Choose a different name"
                                 helper_text_mode: "on_error"
-                            NavigationDrawerIconButton:
-                                text: "Create Library Now"
-                                icon: 'bank'
+                                theme_text_color: 'Secondary'
+                            MDRaisedButton:
+                                text: "Create"
                                 on_release: creator.create_new_library(new_library_box.text)
-                            Widget:
                             
+                        NavigationDrawerDivider:
+                        NavigationDrawerSubheader:
+                            text: "New Story"
+                        BoxLayout:
+                            rows: 4
+                            spacing: 5
+                            Widget:
+                            NavigationDrawerIconButton:
+                                id: new_story_library_id
+                                icon: 'bank'
+                                text: self.library or "Select Library"
+                                library: None
+                                on_release: MDDropdownMenu(items=creator.get_libraries(), width_mult=4).open(self)
+                            MDTextField:
+                                id: new_story_box
+                                hint_text: "New story name"
+                                helper_text: "Choose a different name"
+                                helper_text_mode: "on_error"
+                                theme_text_color: 'Secondary'
+                            MDRaisedButton:
+                                text: "Create"
+                                on_release: creator.create_new_story(new_story_box.text, new_story_library_id.library)
+
                         NavigationDrawerDivider:
                         NavigationDrawerSubheader:
                             text: "Copy Story"
                         BoxLayout:
                             rows: 4
-                            Widget:
+                            NavigationDrawerIconButton:
+                                id: copy_story_from_box
+                                icon: 'book-open-page-variant'
+                                text: "Select From Story"
+                                story: None
+                                library: None
+                                on_release: MDDropdownMenu(items=creator.get_copy_stories(), width_mult=4).open(self)
+                            NavigationDrawerIconButton:
+                                id: copy_story_library_id
+                                icon: 'bank'
+                                text: self.library or "Select Destination"
+                                library: None
+                                on_release: MDDropdownMenu(items=creator.get_copy_libraries(), width_mult=4).open(self)
+
                             MDTextField:
+                                id: copy_story_box
                                 hint_text: "New story name"
                                 helper_text: "Select a different story name"
                                 helper_text_mode: "on_error"
+                                theme_text_color: 'Secondary'
                             MDRaisedButton:
-                                text: "Copy From (select)"
-                                on_release: MDDropdownMenu(items=creator.get_edit_stories(), width_mult=4).open(self)
-                            Widget:
-
+                                text: "Copy"
+                                on_release: creator.copy_story_from_ids(copy_story_from_box, copy_story_library_id, copy_story_box)
  
             Screen:
                 name: 'colors'
@@ -278,6 +302,7 @@ NavigationLayout:
                     
 <SettingButtons>:
     app: app
+
 '''
 
 
@@ -408,25 +433,6 @@ class Creator(Screen):
             for story in self.app.templates[library].stories:
                 self.add_story(library, story)
 
-    def setup_settings_panel(self):
-        self.settings_panel = LibrarySettings()
-        self.settings_panel.bind(on_close=self.dismiss_settings_panel)
-
-    def dismiss_settings_panel(self, _):
-        self.app.root.ids.manager.current = 'creator'
-
-    def edit_story(self):
-        if self.set_story is None or self.set_library is None:
-            Snackbar("Please select a story to edit first.").show()
-            return
-
-        self.setup_settings_panel()
-        self.app.root.ids.manager.current = 'story_title'
-
-    def add_story(self, library, story):
-        self.stories["{}: {}".format(library, story.title)] = {'library': library,
-                                                               'story': story}
-
     def add_page(self, config):
         pages = self.set_story.pages
         if len(pages) == 0:
@@ -445,7 +451,171 @@ class Creator(Screen):
                                                                         library))
         config.write()
 
+    ############### Settings Panel ###############
+    def setup_settings_panel(self):
+        self.settings_panel = LibrarySettings()
+        self.settings_panel.bind(on_close=self.dismiss_settings_panel)
+
+    def dismiss_settings_panel(self, _):
+        self.app.root.ids.manager.current = 'creator'
+
+    ############### Settings Panel End ###############
+
+    ############### Edit Story ###############
+    def set_edit_selections(self, library, story):
+        self.edit_story_id.text = "{}: {}".format(library, story.title)
+        self.edit_story_id.story = story
+        self.edit_story_id.library = library
+
+    def get_edit_stories(self):
+        story_item_list = []
+        for library in self.app.libraries.keys():
+            for story in self.app.libraries[library].stories:
+                story_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}: {}".format(library, story.title),
+                                        'on_release': partial(self.set_edit_selections, library, story)})
+
+        for library in self.app.templates.keys():
+            for story in self.app.templates[library].stories:
+                story_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}: {}".format(library, story.title),
+                                        'on_release': partial(self.set_edit_selections, library, story)})
+        return story_item_list
+
+    def edit_story(self, edit_story_id):
+        self.set_library = edit_story_id.library
+        self.set_story = edit_story_id.story
+
+        if self.set_story is None or self.set_library is None:
+            Snackbar("Please select a story to edit first.").show()
+            return
+
+        self.setup_settings_panel()
+        self.app.story_title_screen()
+
+    ############### Edit Story End ###############
+
+    ############### Create Story ###############
+    def set_new_selections(self, library):
+        self.new_story_library_id.library = library
+
+    def get_libraries(self):
+        library_item_list = []
+        for library in self.app.libraries.keys():
+            library_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}".format(library),
+                                        'on_release': partial(self.set_new_selections, library)})
+        for library in self.app.templates.keys():
+            library_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}".format(library),
+                                        'on_release': partial(self.set_new_selections, library)})
+
+        return library_item_list
+
+    def add_story(self, library, story):
+        self.stories["{}: {}".format(library, story.title)] = {'library': library,
+                                                               'story': story}
+
+    def create_new_story(self, name, library):
+        if len(name) == 0:
+            Snackbar("Please enter a new story name first!").show()
+            return
+
+        if library is None:
+            Snackbar("Please select a library to add your new story!").show()
+            return
+
+        self.set_library = library
+        if "{}: {}".format(library, name) in self.stories:
+            Snackbar("Cannot create story. '{}' already exists in {}.".format(name, library)).show()
+            return
+
+        new_story = self.app.libraries[library].add_new_story(name)
+
+        if new_story is None:
+            Snackbar("Could not create new story.").show()
+            return
+
+        self.set_story = name
+
+        self.add_story(library, new_story)
+        self.set_story = new_story
+        self.set_library = library
+        self.setup_settings_panel()
+
+        new_page = str(int(self.set_story.pages[-1]))
+
+        self.set_story.story_config.setdefaults(new_page, get_page_defaults(new_page))
+        self.settings_panel.add_json_panel(new_page, self.set_story.story_config,
+                                           data=get_story_settings_page(self.set_story.title,
+                                                                        new_page,
+                                                                        library))
+        self.setup_settings_panel()
+        self.app.story_title_screen()
+
+    ############### Create Story End ###############
+
+    ############### Copy Story ###############
+    def set_copy_library_selections(self, library):
+        self.copy_story_library_id.library = library
+
+    def get_copy_libraries(self):
+        library_item_list = []
+        for library in self.app.libraries.keys():
+            library_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}".format(library),
+                                        'on_release': partial(self.set_copy_library_selections, library)})
+        for library in self.app.templates.keys():
+            library_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}".format(library),
+                                        'on_release': partial(self.set_copy_library_selections, library)})
+
+        return library_item_list
+
+    def set_copy_selections(self, library, story):
+        self.copy_story_from_box.text = "{}: {}".format(library, story.title)
+        self.copy_story_from_box.story = story
+        self.copy_story_from_box.library = library
+
+    def get_copy_stories(self):
+        story_item_list = []
+        for library in self.app.libraries.keys():
+            for story in self.app.libraries[library].stories:
+                story_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}: {}".format(library, story.title),
+                                        'on_release': partial(self.set_copy_selections, library, story)})
+
+        for library in self.app.templates.keys():
+            for story in self.app.templates[library].stories:
+                story_item_list.append({'viewclass': 'MDMenuItem',
+                                        'text': "{}: {}".format(library, story.title),
+                                        'on_release': partial(self.set_copy_selections, library, story)})
+        return story_item_list
+
+    def copy_story_from_ids(self, copy_story_from_box, copy_story_library_id, copy_story_box):
+        source_story = copy_story_from_box.text
+        dest_library = copy_story_library_id.library
+        new_name = copy_story_box.text
+
+        if source_story is None:
+            Snackbar("Please select a source story to copy.").show()
+            return
+
+        if dest_library is None:
+            Snackbar("Please select a destination library.").show()
+            return
+
+        if len(new_name) == 0:
+            Snackbar("Please enter a new story name.").show()
+            return
+
+        self.copy_story(source_story, dest_library, new_name)
+
     def copy_story(self, story, library, new_name):
+        if "{}: {}".format(library, new_name) in self.stories:
+            Snackbar("Cannot create story. '{}' already exists in {}.".format(new_name, library)).show()
+            return
+
         if self.stories[story]['library'] == library:
             source_story_file = Path(self.stories[story]['story'].story_config_file)
             dest_story_file = source_story_file.parent.joinpath("{}.ini".format(new_name))
@@ -471,62 +641,31 @@ class Creator(Screen):
             self.set_library = library
             self.setup_settings_panel()
 
-            print "Different library copy"
-
-    def create_new_story(self, library, name):
-        new_story = self.app.libraries[library].add_new_story(name)
-        if new_story is None:
-            return None
-
-        self.add_story(library, new_story)
-        self.set_story = new_story
-        self.set_library = library
         self.setup_settings_panel()
+        self.app.story_title_screen()
 
-        new_page = str(int(self.set_story.pages[-1]))
+    ############### Copy Story End ###############
 
-        self.set_story.story_config.setdefaults(new_page, get_page_defaults(new_page))
-        self.settings_panel.add_json_panel(new_page, self.set_story.story_config,
-                                           data=get_story_settings_page(self.set_story.title,
-                                                                        new_page,
-                                                                        library))
-        return new_story
+    ############### Create Library ###############
 
-    def create_library(self, library, _):
-        if library.text in ["New Library Name", "Invalid Name", "Library Exists"]:
-            library.text = "Invalid Name"
+    def create_new_library(self, library):
+        if len(library) == 0:
+            Snackbar("Please enter a new library name.").show()
             return
 
-        library_path = self.app.library_dir.joinpath(library.text)
+        library_path = self.app.library_dir.joinpath(library)
         if library_path.exists():
-            library.text = "Library Exists"
+            Snackbar("Library already exists. Select new name.").show()
             return
 
         library_path.mkdir()
 
-        self.app.libraries[library.text] = SingleLibrary(name=library.text, library_dir=library_path)
-        self.copy_story("Templates: All About You", library.text, "All About You")
+        self.app.libraries[library] = SingleLibrary(name=library, library_dir=library_path)
+        self.copy_story("Templates: All About You", library, "All About You")
         self.setup_settings_panel()
-        self.app.story_title_screen(self)
+        self.app.story_title_screen()
 
-    def set_selections(self, library, story):
-        self.set_library = library
-        self.set_story = story
-        self.edit_story_id.text = "{}: {}".format(library, story.title)
-
-    def get_edit_stories(self):
-        story_item_list = []
-        for library in self.app.libraries.keys():
-            for story in self.app.libraries[library].stories:
-                story_item_list.append({'viewclass': 'MDMenuItem',
-                                        'text': "{}: {}".format(library, story.title),
-                                        'on_release': partial(self.set_selections, library, story)})
-        for library in self.app.templates.keys():
-            for story in self.app.templates[library].stories:
-                story_item_list.append({'viewclass': 'MDMenuItem',
-                                        'text': "{}: {}".format(library, story.title),
-                                        'on_release': partial(self.set_selections, library, story)})
-        return story_item_list
+    ############### Create Library End ###############
 
 
 class StoryTitle(Screen):
@@ -735,11 +874,9 @@ class StoryBook(Widget):
         self.story_config.read(str(self.story_config_file))
         if self.story_config.get('metadata', 'story') != self.title:
             self.story_config.set('metadata', 'story', self.title)
-            self.story_config.write()
 
         if self.story_config.get('metadata', 'library') != self.library_parent:
             self.story_config.set('metadata', 'library', self.library_parent)
-            self.story_config.write()
 
         # Find the media type (image, video) for this story's title page
         self.title_media = self.story_config.get('title', 'media')
@@ -749,6 +886,7 @@ class StoryBook(Widget):
 
         # Find all the pages
         self.pages = ['title'] + [x.strip() for x in self.story_config.get('metadata', 'pages').split(',')]
+        self.story_config.write()
 
     def next_page(self):
         """
@@ -850,7 +988,6 @@ class StoryPixiesApp(App):
             Snackbar(text="Creator mode is disabled").show()
 
     def story_title_screen(self):
-        self.creator.setup_settings_panel()
         self.switch_screen('story_title')
 
     def story_pages_screen(self):
