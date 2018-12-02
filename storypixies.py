@@ -14,6 +14,7 @@ from functools import partial
 from kivymd.grid import SmartTile, SmartTileWithLabel
 from kivymd.menu import MDDropdownMenu, MDMenuItem
 from kivymd.textfields import MDTextField
+from kivymd.toolbar import Toolbar
 from storysettings import get_settings_json, get_story_settings_title, \
     get_story_settings_page, get_metadata_defaults, get_page_defaults
 from kivy.core.window import Window
@@ -36,7 +37,7 @@ from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ILeftBodyTouch, IRightBodyTouch, BaseListItem, IRightBody
 from kivymd.material_resources import DEVICE_TYPE
-from kivymd.navigationdrawer import MDNavigationDrawer, NavigationDrawerHeaderBase
+from kivymd.navigationdrawer import MDNavigationDrawer, NavigationDrawerHeaderBase, NavigationDrawerIconButton
 from kivymd.selectioncontrols import MDCheckbox
 from kivymd.snackbar import Snackbar
 from kivymd.theming import ThemeManager
@@ -315,6 +316,7 @@ NavigationLayout:
                     
 <SettingButtons>:
     app: app
+
 
 '''
 
@@ -984,21 +986,11 @@ class Story(Screen):
 
         top_grid = self.story_book_grid
         top_grid.clear_widgets()
-        d = self.get_story_display()
+        #d = self.get_story_display()
         self.media_property = self.get_media_display()
-        story_back_button = Button(text="Back",
-                                   bold=True,
-                                   size_hint_y=0.05,
-                                   background_normal='images/backgrounds/button-blue-normal.png')
-        story_next_button = Button(text="Next",
-                                   bold=True,
-                                   size_hint_y=0.05,
-                                   background_normal='images/backgrounds/button-blue-normal.png')
-        story_back_button.bind(on_release=self.prev_page)
-        story_next_button.bind(on_release=self.next_page)
-        top_grid.add_widget(story_back_button)
-        top_grid.add_widget(story_next_button)
-        top_grid.add_widget(d)
+        story_toolbar = Toolbar(title=self.current_story.current_page,
+                                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        top_grid.add_widget(story_toolbar)
         top_grid.add_widget(self.media_property)
 
     def prev_page(self, _):
