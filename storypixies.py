@@ -11,6 +11,7 @@ from kivy.metrics import dp
 from pathlib2 import Path
 from functools import partial
 
+from kivymd.grid import SmartTile, SmartTileWithLabel
 from kivymd.menu import MDDropdownMenu, MDMenuItem
 from kivymd.textfields import MDTextField
 from storysettings import get_settings_json, get_story_settings_title, \
@@ -86,7 +87,7 @@ NavigationLayout:
     MDNavigationDrawer:
         id: nav_drawer
         NavigationDrawerToolbar:
-            title: "Navigation Drawer"
+            title: "Storypixies Menu"
         NavigationDrawerIconButton:
             icon: 'checkbox-blank-circle'
             text: 'Help'
@@ -94,7 +95,7 @@ NavigationLayout:
         NavigationDrawerIconButton:
             icon: 'checkbox-blank-circle'
             text: 'Select Library'
-            on_release: app.root.ids.manager.current = 'library'
+            on_release: app.manager.current = 'library_list'
         NavigationDrawerIconButton:
             icon: 'checkbox-blank-circle'
             text: 'Creator'
@@ -102,7 +103,7 @@ NavigationLayout:
         NavigationDrawerIconButton:
             icon: 'checkbox-blank-circle'
             text: 'Colors'
-            on_release: app.root.ids.manager.current = 'colors'
+            on_release: app.manager.current = 'colors'
 
     BoxLayout:
         orientation: 'vertical'
@@ -123,12 +124,14 @@ NavigationLayout:
                     RstDocument:
                         text: app.intro_text()
             
-            Library:
-                name: 'library'
+            LibraryList:
+                app: app
+                name: 'library_list'
+                library_list_grid: library_list_grid
                 ScrollView:
                     do_scroll_x: False
                     GridLayout:
-                        id: 'library_grid'
+                        id: library_list_grid
                         cols: 3
                         row_default_height: (self.width - self.cols*self.spacing[0])/self.cols
                         row_force_default: True
@@ -139,24 +142,34 @@ NavigationLayout:
                         SmartTile:
                             mipmap: True
                             source: 'images/storypixies.png'
+                        
+            Library:
+                name: 'library_screen'
+                app: app
+                library_grid: library_grid
+                ScrollView:
+                    do_scroll_x: False
+                    GridLayout:
+                        id: library_grid
+                        cols: 3
+                        row_default_height: (self.width - self.cols*self.spacing[0])/self.cols
+                        row_force_default: True
+                        size_hint_y: None
+                        height: self.minimum_height
+                        padding: dp(4), dp(4)
+                        spacing: dp(4)
                         SmartTile:
                             mipmap: True
                             source: 'images/storypixies.png'
-                        SmartTile:
-                            mipmap: True
-                            source: 'images/storypixies.png'
-                        SmartTile:
-                            mipmap: True
-                            source: 'images/storypixies.png'
-                        SmartTile:
-                            mipmap: True
-                            source: 'images/storypixies.png'
-                        SmartTile:
-                            mipmap: True
-                            source: 'images/storypixies.png'
-                        SmartTile:
-                            mipmap: True
-                            source: 'images/storypixies.png'
+                        
+            Story:
+                name: 'story_screen'
+                story_book_grid: story_book_grid
+                app: app
+                GridLayout:
+                    id: story_book_grid
+                    cols: 2
+                    spacing: 30
 
             Creator:
                 name: 'creator'
@@ -306,10 +319,6 @@ NavigationLayout:
 '''
 
 
-class Library(Screen):
-    pass
-
-
 class LibrarySettings(SettingsWithSidebar):
     story = ObjectProperty()
 
@@ -457,7 +466,7 @@ class Creator(Screen):
         self.settings_panel.bind(on_close=self.dismiss_settings_panel)
 
     def dismiss_settings_panel(self, _):
-        self.app.root.ids.manager.current = 'creator'
+        self.app.manager.current = 'creator'
 
     ############### Settings Panel End ###############
 
@@ -915,6 +924,120 @@ class StoryBook(Widget):
         return self.get_story_value(self.current_page, 'text')
 
 
+
+class LibraryList(Screen):
+    def __init__(self, **kwargs):
+        """
+        Initializes the root widget.
+        Sets property defaults.
+        Sets selected library as the first found library.
+        :param kwargs:
+        """
+        super(LibraryList, self).__init__(**kwargs)
+
+    def on_pre_enter(self, *args):
+        library_list_grid = self.library_list_grid
+        library_list_grid.clear_widgets()
+        for i in self.app.libraries.keys():
+            b = SmartTileWithLabel(mipmap=True, source='images/storypixies.png',
+                                   text=i)
+            b._box_label.theme_text_color='Custom'
+            b._box_label.text_color=(1,1,1,1)
+            b.bind(on_press=partial(self.app.set_selected_library, i))
+            b.bind(on_release=partial(self.app.library_screen))
+            library_list_grid.add_widget(b)
+
+
+class Library(Screen):
+    def on_pre_enter(self, *args):
+        library_grid = self.library_grid
+        library_grid.clear_widgets()
+        for story in self.app.get_library_object().stories:
+            b = SmartTileWithLabel(mipmap=True, source=story.get_story_media(),
+                                   text=story.title)
+            b._box_label.theme_text_color='Custom'
+            b._box_label.text_color=(1,1,1,1)
+            b.bind(on_release=partial(self.app.story_screen))
+            library_grid.add_widget(b)
+
+
+class Story(Screen):
+    media_property = ObjectProperty(None)
+    current_story = ObjectProperty(None)
+
+    def on_pre_enter(self):
+        """
+        Ensure the other buttons are unselected. For some
+        reason, multiple toggle buttons wind up selected.
+        """
+
+        self.current_story = self.app.get_library_object().get_story()
+        self.assemble_layout()
+
+    def on_pre_leave(self):
+        if self.media_property is not None:
+            self.media_property.state = 'stop'
+
+    def assemble_layout(self):
+        if self.media_property is not None:
+            self.media_property.state = 'stop'
+
+        top_grid = self.story_book_grid
+        top_grid.clear_widgets()
+        d = self.get_story_display()
+        self.media_property = self.get_media_display()
+        story_back_button = Button(text="Back",
+                                   bold=True,
+                                   size_hint_y=0.05,
+                                   background_normal='images/backgrounds/button-blue-normal.png')
+        story_next_button = Button(text="Next",
+                                   bold=True,
+                                   size_hint_y=0.05,
+                                   background_normal='images/backgrounds/button-blue-normal.png')
+        story_back_button.bind(on_release=self.prev_page)
+        story_next_button.bind(on_release=self.next_page)
+        top_grid.add_widget(story_back_button)
+        top_grid.add_widget(story_next_button)
+        top_grid.add_widget(d)
+        top_grid.add_widget(self.media_property)
+
+    def prev_page(self, _):
+        if self.current_story.current_page == 'title':
+            self.app.library_screen(self)
+        else:
+            self.current_story.previous_page()
+            self.assemble_layout()
+
+    def next_page(self, _):
+        page_now = self.current_story.current_page_no
+        self.current_story.next_page()
+        if page_now == self.current_story.current_page_no:
+            self.app.library_screen(self)
+        else:
+            self.assemble_layout()
+
+    def get_story_display(self):
+        story_text_label = Label(text=self.current_story.get_story_text(),
+                                 text_size=(None, None),
+                                 font_size="20sp",
+                                 pos_hint={'center_x': 0.5, 'center_y': 100.85},
+                                 size_hint_y=1,
+                                 halign="center",
+                                 valign="middle",
+                                 color=(0, 0, 0, 1),
+                                 background_color=(0.98, 0.965, 0.719, 1))
+
+        return story_text_label
+
+    def get_media_display(self):
+        media_type = self.current_story.get_story_media_type()
+        if media_type == 'image':
+            return Image(source=self.current_story.get_story_media(), allow_stretch=False, keep_ratio=True)
+        elif media_type == 'video':
+            return VideoPlayer(id=self.current_story.current_page + 'video',
+                               source=self.current_story.get_story_media(), state='play',
+                               options={'allow_stretch': True, 'keep_ratio': True})
+
 class StoryPixiesApp(App):
     theme_cls = ThemeManager()
     title = 'Story Pixies'
@@ -971,7 +1094,14 @@ class StoryPixiesApp(App):
         else:
             self.set_selected_library(self.libraries.keys()[0])
 
-    def set_selected_library(self, library=None):
+
+    def get_library_object(self, library=None):
+        if library is None:
+            return self.libraries.get(self.selected_library)
+        else:
+            return self.libraries.get(library)
+
+    def set_selected_library(self, library=None, id=None):
         """
         Stores passed library as selected.
         :param library: the library to set as current
@@ -987,6 +1117,15 @@ class StoryPixiesApp(App):
         else:
             Snackbar(text="Creator mode is disabled").show()
 
+    def switch_screen(self, screen_name):
+        self.manager.current = screen_name
+
+    def library_screen(self, id=None):
+        self.switch_screen('library_screen')
+
+    def story_screen(self, id=None):
+        self.switch_screen('story_screen')
+
     def story_title_screen(self):
         self.switch_screen('story_title')
 
@@ -994,8 +1133,6 @@ class StoryPixiesApp(App):
         self.creator.setup_settings_panel()
         self.switch_screen('story_pages')
 
-    def switch_screen(self, screen_name):
-        self.manager.current = screen_name
 
     @staticmethod
     def intro_text():
