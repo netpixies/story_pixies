@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+
 from kivy.clock import Clock
-from kivy.factory import Factory
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.properties import ListProperty, StringProperty, OptionProperty
+from kivy.properties import ListProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+
 from kivymd.backgroundcolorbehavior import SpecificBackgroundColorBehavior
 from kivymd.button import MDIconButton
 from kivymd.theming import ThemableBehavior
@@ -45,18 +46,14 @@ class Toolbar(ThemableBehavior, RectangularElevationBehavior,
               SpecificBackgroundColorBehavior, BoxLayout):
     left_action_items = ListProperty()
     """The icons on the left of the Toolbar.
-
     To add one, append a list like the following:
-
         ['icon_name', callback]
-
     where 'icon_name' is a string that corresponds to an icon definition and
      callback is the function called on a touch release event.
     """
 
     right_action_items = ListProperty()
     """The icons on the left of the Toolbar.
-
     Works the same way as :attr:`left_action_items`
     """
 
@@ -85,11 +82,11 @@ class Toolbar(ThemableBehavior, RectangularElevationBehavior,
         new_width = 0
         for item in action_bar_items:
             new_width += dp(48)
-            action_bar.add_widget(MDIconButton(icon=item[0],
-                                               on_release=item[1],
-                                               opposite_colors=True,
-                                               text_color=self.specific_text_color,
-                                               theme_text_color='Custom'))
+            action_bar.add_widget(
+                MDIconButton(icon=item[0], on_release=item[1],
+                             opposite_colors=True,
+                             text_color=self.specific_text_color,
+                             theme_text_color='Custom'))
         action_bar.width = new_width
 
     def update_action_bar_text_colors(self, instance, value):
