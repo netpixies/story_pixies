@@ -4,19 +4,14 @@ import sys
 
 from kivy.lang import Builder
 from kivy.uix.settings import SettingOptions, SettingsWithSidebar, SettingItem, SettingSpacer, SettingString
-from kivy.uix.spinner import Spinner
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.metrics import dp
 from pathlib2 import Path
 from functools import partial
 
-from kivymd.grid import SmartTile, SmartTileWithLabel
-from kivymd.menu import MDDropdownMenu, MDMenuItem
-from kivymd.textfields import MDTextField
-from kivymd.toolbar import Toolbar
-from storysettings import get_settings_json, get_story_settings_title, \
-    get_story_settings_page, get_metadata_defaults, get_page_defaults
+from kivymd.card import MDCard
+from kivymd.grid import SmartTileWithLabel
+from storysettings import get_story_settings_title, get_story_settings_page, get_metadata_defaults, get_page_defaults
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
 from kivy.app import App
@@ -26,24 +21,15 @@ from kivy.properties import ObjectProperty, ListProperty, StringProperty, Numeri
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.uix.videoplayer import VideoPlayer
-from kivy.uix.label import Label
-from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
+from kivy.uix.screenmanager import Screen
 from kivy.uix.button import Button
 
-from kivymd.bottomsheet import MDListBottomSheet, MDGridBottomSheet
-from kivymd.button import MDIconButton, MDRaisedButton
-from kivymd.date_picker import MDDatePicker
-from kivymd.dialog import MDDialog
+from kivymd.button import MDRaisedButton, MDFlatButton
 from kivymd.label import MDLabel
-from kivymd.list import ILeftBody, ILeftBodyTouch, IRightBodyTouch, BaseListItem, IRightBody
-from kivymd.material_resources import DEVICE_TYPE
-from kivymd.navigationdrawer import MDNavigationDrawer, NavigationDrawerHeaderBase, NavigationDrawerIconButton
-from kivymd.selectioncontrols import MDCheckbox
 from kivymd.snackbar import Snackbar
 from kivymd.theming import ThemeManager
 
 kivy.require('1.10.1')
-
 
 root_kv = '''
 #:import partial functools.partial
@@ -165,12 +151,10 @@ NavigationLayout:
                         
             Story:
                 name: 'story_screen'
-                story_book_grid: story_book_grid
+                id: story_screen
+                story_screen: story_screen
                 app: app
-                GridLayout:
-                    id: story_book_grid
-                    cols: 2
-                    spacing: 30
+
 
             Creator:
                 name: 'creator'
@@ -462,7 +446,9 @@ class Creator(Screen):
                                                                         library))
         config.write()
 
-    ############### Settings Panel ###############
+    '''
+    Settings Panel Methods Start
+    '''
     def setup_settings_panel(self):
         self.settings_panel = LibrarySettings()
         self.settings_panel.bind(on_close=self.dismiss_settings_panel)
@@ -470,9 +456,9 @@ class Creator(Screen):
     def dismiss_settings_panel(self, _):
         self.app.manager.current = 'creator'
 
-    ############### Settings Panel End ###############
-
-    ############### Edit Story ###############
+    '''
+    Edit Story Methods Start
+    '''
     def set_edit_selections(self, library, story):
         self.edit_story_id.text = "{}: {}".format(library, story.title)
         self.edit_story_id.story = story
@@ -504,9 +490,9 @@ class Creator(Screen):
         self.setup_settings_panel()
         self.app.story_title_screen()
 
-    ############### Edit Story End ###############
-
-    ############### Create Story ###############
+    '''
+    Create Story Methods Start
+    '''
     def set_new_selections(self, library):
         self.new_story_library_id.library = library
 
@@ -514,12 +500,12 @@ class Creator(Screen):
         library_item_list = []
         for library in self.app.libraries.keys():
             library_item_list.append({'viewclass': 'MDMenuItem',
-                                        'text': "{}".format(library),
-                                        'on_release': partial(self.set_new_selections, library)})
+                                      'text': "{}".format(library),
+                                      'on_release': partial(self.set_new_selections, library)})
         for library in self.app.templates.keys():
             library_item_list.append({'viewclass': 'MDMenuItem',
-                                        'text': "{}".format(library),
-                                        'on_release': partial(self.set_new_selections, library)})
+                                      'text': "{}".format(library),
+                                      'on_release': partial(self.set_new_selections, library)})
 
         return library_item_list
 
@@ -564,9 +550,9 @@ class Creator(Screen):
         self.setup_settings_panel()
         self.app.story_title_screen()
 
-    ############### Create Story End ###############
-
-    ############### Copy Story ###############
+    '''
+    Copy Story Methods Start
+    '''
     def set_copy_library_selections(self, library):
         self.copy_story_library_id.library = library
 
@@ -574,12 +560,12 @@ class Creator(Screen):
         library_item_list = []
         for library in self.app.libraries.keys():
             library_item_list.append({'viewclass': 'MDMenuItem',
-                                        'text': "{}".format(library),
-                                        'on_release': partial(self.set_copy_library_selections, library)})
+                                      'text': "{}".format(library),
+                                      'on_release': partial(self.set_copy_library_selections, library)})
         for library in self.app.templates.keys():
             library_item_list.append({'viewclass': 'MDMenuItem',
-                                        'text': "{}".format(library),
-                                        'on_release': partial(self.set_copy_library_selections, library)})
+                                      'text': "{}".format(library),
+                                      'on_release': partial(self.set_copy_library_selections, library)})
 
         return library_item_list
 
@@ -655,10 +641,9 @@ class Creator(Screen):
         self.setup_settings_panel()
         self.app.story_title_screen()
 
-    ############### Copy Story End ###############
-
-    ############### Create Library ###############
-
+    '''
+    Create Library Methods Start
+    '''
     def create_new_library(self, library):
         if len(library) == 0:
             Snackbar("Please enter a new library name.").show()
@@ -675,8 +660,6 @@ class Creator(Screen):
         self.copy_story("Templates: All About You", library, "All About You")
         self.setup_settings_panel()
         self.app.story_title_screen()
-
-    ############### Create Library End ###############
 
 
 class StoryTitle(Screen):
@@ -741,7 +724,6 @@ class StoryPages(Screen):
 
 
 class SingleLibrary(Widget):
-
     # List of StoryBook objects in this library
     stories = ListProperty()
 
@@ -749,7 +731,7 @@ class SingleLibrary(Widget):
     name = StringProperty(None)
 
     # The currently set story, defaults to the first
-    current_story = NumericProperty(None)
+    current_story = ObjectProperty(None)
 
     # This library's directory
     library_dir = ObjectProperty(None)
@@ -759,7 +741,6 @@ class SingleLibrary(Widget):
         self.name = kwargs['name']
         self.library_dir = kwargs['library_dir']
         self.stories = []
-        self.current_story = 0
         self.add_stories()
 
     def add_stories(self):
@@ -786,38 +767,13 @@ class SingleLibrary(Widget):
         self.stories.append(new_story)
         return new_story
 
-    def set_current_story(self, num):
-        """
-        Set the currently running story.
-        :param num: The story number to set
-        :return: Return the same number
-        """
-        num %= len(self.stories)
-        self.current_story = num
-        return num
+    def set_current_story(self, story):
+        story.current_page_no = 0
+        self.current_story = story
+        return story
 
-    def get_story(self, num=None):
-        if num is None:
-            return self.stories[self.current_story]
-        else:
-            num %= len(self.stories)
-            return self.stories[num]
-
-    def next_story(self):
-        """
-        Updates the selected story to be the next one.
-        :return: The name of the story
-        """
-        num = self.set_current_story(self.current_story + 1)
-        return self.stories[num].title
-
-    def prev_story(self):
-        """
-        Updates the selected story to be the previous one.
-        :return: The name of the story
-        """
-        num = self.set_current_story(self.current_story - 1)
-        return self.stories[num].title
+    def get_story(self):
+        return self.current_story
 
 
 class StoryBook(Widget):
@@ -923,8 +879,8 @@ class StoryBook(Widget):
         return self.get_story_value(self.current_page, 'media')
 
     def get_story_text(self):
+        print "foo"
         return self.get_story_value(self.current_page, 'text')
-
 
 
 class LibraryList(Screen):
@@ -943,8 +899,8 @@ class LibraryList(Screen):
         for i in self.app.libraries.keys():
             b = SmartTileWithLabel(mipmap=True, source='images/storypixies.png',
                                    text=i)
-            b._box_label.theme_text_color='Custom'
-            b._box_label.text_color=(1,1,1,1)
+            b._box_label.theme_text_color = 'Custom'
+            b._box_label.text_color = (1, 1, 1, 1)
             b.bind(on_press=partial(self.app.set_selected_library, i))
             b.bind(on_release=partial(self.app.library_screen))
             library_list_grid.add_widget(b)
@@ -957,10 +913,14 @@ class Library(Screen):
         for story in self.app.get_library_object().stories:
             b = SmartTileWithLabel(mipmap=True, source=story.get_story_media(),
                                    text=story.title)
-            b._box_label.theme_text_color='Custom'
-            b._box_label.text_color=(1,1,1,1)
-            b.bind(on_release=partial(self.app.story_screen))
+            b._box_label.theme_text_color = 'Custom'
+            b._box_label.text_color = (1, 1, 1, 1)
+            b.bind(on_release=partial(self.set_story, story))
             library_grid.add_widget(b)
+
+    def set_story(self, story, _):
+        self.app.get_library_object().set_current_story(story)
+        self.app.story_screen()
 
 
 class Story(Screen):
@@ -968,11 +928,6 @@ class Story(Screen):
     current_story = ObjectProperty(None)
 
     def on_pre_enter(self):
-        """
-        Ensure the other buttons are unselected. For some
-        reason, multiple toggle buttons wind up selected.
-        """
-
         self.current_story = self.app.get_library_object().get_story()
         self.assemble_layout()
 
@@ -984,14 +939,62 @@ class Story(Screen):
         if self.media_property is not None:
             self.media_property.state = 'stop'
 
-        top_grid = self.story_book_grid
-        top_grid.clear_widgets()
-        #d = self.get_story_display()
-        self.media_property = self.get_media_display()
-        story_toolbar = Toolbar(title=self.current_story.current_page,
-                                pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        top_grid.add_widget(story_toolbar)
-        top_grid.add_widget(self.media_property)
+        story_screen = self.story_screen
+        story_screen.clear_widgets()
+
+        story_screen.add_widget(self.get_nav_bar())
+        story_screen.add_widget(self.get_media_page())
+        story_screen.add_widget(self.get_text_page())
+
+    def get_nav_bar(self):
+        main_bar = MDCard(size_hint=(1.0, 0.08),
+                          pos_hint={'center_x': 0.5, 'center_y': 0.95})
+        bar_box = BoxLayout(orientation='horizontal', padding=dp(8))
+        back_button = MDRaisedButton(text='Back', theme_text_color='Secondary',
+                                     font_style='Title', size_hint_x=None,
+                                     width=dp(36), height=self.parent.height,
+                                     pos_hint={'center_x': 0.2, 'center_y': 0.5},
+                                     on_release=partial(self.prev_page))
+        title_label = MDLabel(disabled=True, theme_text_color='Primary', halign='center',
+                              height=self.parent.height,
+                              pos_hint={'center_x': 0.2, 'center_y': 0.5})
+        title_label.text = self.current_story.title
+        next_button = MDRaisedButton(text='Next', theme_text_color='Secondary',
+                                     font_style='Title', size_hint_x=None,
+                                     width=dp(36), height=self.parent.height,
+                                     pos_hint={'center_x': 0.2, 'center_y': 0.5},
+                                     on_release=partial(self.next_page))
+
+        bar_box.add_widget(back_button)
+        bar_box.add_widget(title_label)
+        bar_box.add_widget(next_button)
+        main_bar.add_widget(bar_box)
+        return main_bar
+
+    def get_media_page(self):
+        media_card = MDCard(size_hint=(0.5, 0.9),
+                            pos_hint={'center_x': 0.75, 'center_y': 0.45})
+        media_type = self.current_story.get_story_media_type()
+        if media_type == 'image':
+            self.media_property = Image(source=self.current_story.get_story_media(),
+                                        allow_stretch=False, keep_ratio=True)
+        elif media_type == 'video':
+            self.media_property = VideoPlayer(id=self.current_story.current_page + 'video',
+                                              source=self.current_story.get_story_media(), state='play',
+                                              options={'allow_stretch': True, 'keep_ratio': True})
+
+        media_card.add_widget(self.media_property)
+        return media_card
+
+    def get_text_page(self):
+        text_card = MDCard(size_hint=(0.5, 0.9),
+                           pos_hint={'center_x': 0.25, 'center_y': 0.45})
+        text_label = MDLabel(disabled=True, pos_hint={'center_x': 0.5, 'center_y': 0.5},
+                             halign='center', valign='top', theme_color='Secondary',
+                             font_style='Body1', size_hint_y=None)
+        text_label.text = self.current_story.get_story_text()
+        text_card.add_widget(text_label)
+        return text_card
 
     def prev_page(self, _):
         if self.current_story.current_page == 'title':
@@ -1008,27 +1011,6 @@ class Story(Screen):
         else:
             self.assemble_layout()
 
-    def get_story_display(self):
-        story_text_label = Label(text=self.current_story.get_story_text(),
-                                 text_size=(None, None),
-                                 font_size="20sp",
-                                 pos_hint={'center_x': 0.5, 'center_y': 100.85},
-                                 size_hint_y=1,
-                                 halign="center",
-                                 valign="middle",
-                                 color=(0, 0, 0, 1),
-                                 background_color=(0.98, 0.965, 0.719, 1))
-
-        return story_text_label
-
-    def get_media_display(self):
-        media_type = self.current_story.get_story_media_type()
-        if media_type == 'image':
-            return Image(source=self.current_story.get_story_media(), allow_stretch=False, keep_ratio=True)
-        elif media_type == 'video':
-            return VideoPlayer(id=self.current_story.current_page + 'video',
-                               source=self.current_story.get_story_media(), state='play',
-                               options={'allow_stretch': True, 'keep_ratio': True})
 
 class StoryPixiesApp(App):
     theme_cls = ThemeManager()
@@ -1045,7 +1027,6 @@ class StoryPixiesApp(App):
     selected_library = StringProperty(None)
 
     library_dir = ObjectProperty(None)
-
 
     def __init__(self, **kwargs):
         """
@@ -1086,18 +1067,10 @@ class StoryPixiesApp(App):
         else:
             self.set_selected_library(self.libraries.keys()[0])
 
+    def get_library_object(self):
+        return self.libraries.get(self.selected_library)
 
-    def get_library_object(self, library=None):
-        if library is None:
-            return self.libraries.get(self.selected_library)
-        else:
-            return self.libraries.get(library)
-
-    def set_selected_library(self, library=None, id=None):
-        """
-        Stores passed library as selected.
-        :param library: the library to set as current
-        """
+    def set_selected_library(self, library, _=None):
         if library in self.libraries.keys():
             self.selected_library = library
         else:
@@ -1112,10 +1085,10 @@ class StoryPixiesApp(App):
     def switch_screen(self, screen_name):
         self.manager.current = screen_name
 
-    def library_screen(self, id=None):
+    def library_screen(self, _):
         self.switch_screen('library_screen')
 
-    def story_screen(self, id=None):
+    def story_screen(self):
         self.switch_screen('story_screen')
 
     def story_title_screen(self):
@@ -1124,7 +1097,6 @@ class StoryPixiesApp(App):
     def story_pages_screen(self):
         self.creator.setup_settings_panel()
         self.switch_screen('story_pages')
-
 
     @staticmethod
     def intro_text():
