@@ -24,7 +24,7 @@ from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.screenmanager import Screen
 from kivy.uix.button import Button
 
-from kivymd.button import MDRaisedButton, MDFlatButton
+from kivymd.button import MDRaisedButton
 from kivymd.label import MDLabel
 from kivymd.snackbar import Snackbar
 from kivymd.theming import ThemeManager
@@ -776,6 +776,46 @@ class SingleLibrary(Widget):
         return self.current_story
 
 
+class LibraryList(Screen):
+    def __init__(self, **kwargs):
+        """
+        Initializes the root widget.
+        Sets property defaults.
+        Sets selected library as the first found library.
+        :param kwargs:
+        """
+        super(LibraryList, self).__init__(**kwargs)
+
+    def on_pre_enter(self, *args):
+        library_list_grid = self.library_list_grid
+        library_list_grid.clear_widgets()
+        for i in self.app.libraries.keys():
+            b = SmartTileWithLabel(mipmap=True, source='images/storypixies.png',
+                                   text=i)
+            b._box_label.theme_text_color = 'Custom'
+            b._box_label.text_color = (1, 1, 1, 1)
+            b.bind(on_press=partial(self.app.set_selected_library, i))
+            b.bind(on_release=partial(self.app.library_screen))
+            library_list_grid.add_widget(b)
+
+
+class Library(Screen):
+    def on_pre_enter(self, *args):
+        library_grid = self.library_grid
+        library_grid.clear_widgets()
+        for story in self.app.get_library_object().stories:
+            b = SmartTileWithLabel(mipmap=True, source=story.get_story_media(),
+                                   text=story.title)
+            b._box_label.theme_text_color = 'Custom'
+            b._box_label.text_color = (1, 1, 1, 1)
+            b.bind(on_release=partial(self.set_story, story))
+            library_grid.add_widget(b)
+
+    def set_story(self, story, _):
+        self.app.get_library_object().set_current_story(story)
+        self.app.story_screen()
+
+
 class StoryBook(Widget):
     # This story's title
     title = StringProperty(None)
@@ -881,46 +921,6 @@ class StoryBook(Widget):
     def get_story_text(self):
         print "foo"
         return self.get_story_value(self.current_page, 'text')
-
-
-class LibraryList(Screen):
-    def __init__(self, **kwargs):
-        """
-        Initializes the root widget.
-        Sets property defaults.
-        Sets selected library as the first found library.
-        :param kwargs:
-        """
-        super(LibraryList, self).__init__(**kwargs)
-
-    def on_pre_enter(self, *args):
-        library_list_grid = self.library_list_grid
-        library_list_grid.clear_widgets()
-        for i in self.app.libraries.keys():
-            b = SmartTileWithLabel(mipmap=True, source='images/storypixies.png',
-                                   text=i)
-            b._box_label.theme_text_color = 'Custom'
-            b._box_label.text_color = (1, 1, 1, 1)
-            b.bind(on_press=partial(self.app.set_selected_library, i))
-            b.bind(on_release=partial(self.app.library_screen))
-            library_list_grid.add_widget(b)
-
-
-class Library(Screen):
-    def on_pre_enter(self, *args):
-        library_grid = self.library_grid
-        library_grid.clear_widgets()
-        for story in self.app.get_library_object().stories:
-            b = SmartTileWithLabel(mipmap=True, source=story.get_story_media(),
-                                   text=story.title)
-            b._box_label.theme_text_color = 'Custom'
-            b._box_label.text_color = (1, 1, 1, 1)
-            b.bind(on_release=partial(self.set_story, story))
-            library_grid.add_widget(b)
-
-    def set_story(self, story, _):
-        self.app.get_library_object().set_current_story(story)
-        self.app.story_screen()
 
 
 class Story(Screen):
