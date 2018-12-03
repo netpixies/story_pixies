@@ -459,7 +459,7 @@ class Creator(Screen):
     '''
     Edit Story Methods Start
     '''
-    def set_edit_selections(self, library, story):
+    def set_edit_selections(self, library, story, _):
         self.edit_story_id.text = "{}: {}".format(library, story.title)
         self.edit_story_id.story = story
         self.edit_story_id.library = library
@@ -470,13 +470,13 @@ class Creator(Screen):
             for story in self.app.libraries[library].stories:
                 story_item_list.append({'viewclass': 'MDMenuItem',
                                         'text': "{}: {}".format(library, story.title),
-                                        'on_release': partial(self.set_edit_selections, library, story)})
+                                        'callback': partial(self.set_edit_selections, library, story)})
 
         for library in self.app.templates.keys():
             for story in self.app.templates[library].stories:
                 story_item_list.append({'viewclass': 'MDMenuItem',
                                         'text': "{}: {}".format(library, story.title),
-                                        'on_release': partial(self.set_edit_selections, library, story)})
+                                        'callback': partial(self.set_edit_selections, library, story)})
         return story_item_list
 
     def edit_story(self, edit_story_id):
@@ -493,7 +493,7 @@ class Creator(Screen):
     '''
     Create Story Methods Start
     '''
-    def set_new_selections(self, library):
+    def set_new_selections(self, library, _):
         self.new_story_library_id.library = library
 
     def get_libraries(self):
@@ -501,11 +501,11 @@ class Creator(Screen):
         for library in self.app.libraries.keys():
             library_item_list.append({'viewclass': 'MDMenuItem',
                                       'text': "{}".format(library),
-                                      'on_release': partial(self.set_new_selections, library)})
+                                      'callback': partial(self.set_new_selections, library)})
         for library in self.app.templates.keys():
             library_item_list.append({'viewclass': 'MDMenuItem',
                                       'text': "{}".format(library),
-                                      'on_release': partial(self.set_new_selections, library)})
+                                      'callback': partial(self.set_new_selections, library)})
 
         return library_item_list
 
@@ -553,7 +553,7 @@ class Creator(Screen):
     '''
     Copy Story Methods Start
     '''
-    def set_copy_library_selections(self, library):
+    def set_copy_library_selections(self, library, _):
         self.copy_story_library_id.library = library
 
     def get_copy_libraries(self):
@@ -561,15 +561,15 @@ class Creator(Screen):
         for library in self.app.libraries.keys():
             library_item_list.append({'viewclass': 'MDMenuItem',
                                       'text': "{}".format(library),
-                                      'on_release': partial(self.set_copy_library_selections, library)})
+                                      'callback': partial(self.set_copy_library_selections, library)})
         for library in self.app.templates.keys():
             library_item_list.append({'viewclass': 'MDMenuItem',
                                       'text': "{}".format(library),
-                                      'on_release': partial(self.set_copy_library_selections, library)})
+                                      'callback': partial(self.set_copy_library_selections, library)})
 
         return library_item_list
 
-    def set_copy_selections(self, library, story):
+    def set_copy_selections(self, library, story, _):
         self.copy_story_from_box.text = "{}: {}".format(library, story.title)
         self.copy_story_from_box.story = story
         self.copy_story_from_box.library = library
@@ -580,13 +580,13 @@ class Creator(Screen):
             for story in self.app.libraries[library].stories:
                 story_item_list.append({'viewclass': 'MDMenuItem',
                                         'text': "{}: {}".format(library, story.title),
-                                        'on_release': partial(self.set_copy_selections, library, story)})
+                                        'callback': partial(self.set_copy_selections, library, story)})
 
         for library in self.app.templates.keys():
             for story in self.app.templates[library].stories:
                 story_item_list.append({'viewclass': 'MDMenuItem',
                                         'text': "{}: {}".format(library, story.title),
-                                        'on_release': partial(self.set_copy_selections, library, story)})
+                                        'callback': partial(self.set_copy_selections, library, story)})
         return story_item_list
 
     def copy_story_from_ids(self, copy_story_from_box, copy_story_library_id, copy_story_box):
@@ -804,7 +804,7 @@ class Library(Screen):
         library_grid = self.library_grid
         library_grid.clear_widgets()
         for story in self.app.get_library_object().stories:
-            b = SmartTileWithLabel(mipmap=True, source=story.get_story_media(),
+            b = SmartTileWithLabel(mipmap=True, source=story.get_title_image(),
                                    text=story.title)
             b._box_label.theme_text_color = 'Custom'
             b._box_label.text_color = (1, 1, 1, 1)
@@ -912,6 +912,9 @@ class StoryBook(Widget):
     def get_story_value(self, page, value):
         return self.story_config.get(page, value)
 
+    def get_title_image(self):
+        return self.get_story_value(self.pages[0], 'media_location')
+
     def get_story_media(self):
         return self.get_story_value(self.current_page, 'media_location')
 
@@ -919,7 +922,6 @@ class StoryBook(Widget):
         return self.get_story_value(self.current_page, 'media')
 
     def get_story_text(self):
-        print "foo"
         return self.get_story_value(self.current_page, 'text')
 
 
@@ -948,7 +950,7 @@ class Story(Screen):
 
     def get_nav_bar(self):
         main_bar = MDCard(size_hint=(1.0, 0.08),
-                          pos_hint={'center_x': 0.5, 'center_y': 0.95})
+                          pos_hint={'center_x': 0.5, 'center_y': 0.05})
         bar_box = BoxLayout(orientation='horizontal', padding=dp(8))
         back_button = MDRaisedButton(text='Back', theme_text_color='Secondary',
                                      font_style='Title', size_hint_x=None,
@@ -973,7 +975,7 @@ class Story(Screen):
 
     def get_media_page(self):
         media_card = MDCard(size_hint=(0.5, 0.9),
-                            pos_hint={'center_x': 0.75, 'center_y': 0.45})
+                            pos_hint={'center_x': 0.75, 'center_y': 0.55})
         media_type = self.current_story.get_story_media_type()
         if media_type == 'image':
             self.media_property = Image(source=self.current_story.get_story_media(),
@@ -988,7 +990,7 @@ class Story(Screen):
 
     def get_text_page(self):
         text_card = MDCard(size_hint=(0.5, 0.9),
-                           pos_hint={'center_x': 0.25, 'center_y': 0.45})
+                           pos_hint={'center_x': 0.25, 'center_y': 0.55})
         text_label = MDLabel(disabled=True, pos_hint={'center_x': 0.5, 'center_y': 0.5},
                              halign='center', valign='top', theme_color='Secondary',
                              font_style='Body1', size_hint_y=None)
