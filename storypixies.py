@@ -32,42 +32,15 @@ from kivymd.theming import ThemeManager
 kivy.require('1.10.1')
 
 root_kv = '''
-#:import partial functools.partial
-#:import Toolbar kivymd.toolbar.Toolbar
-#:import ThemeManager kivymd.theming.ThemeManager
-#:import MDNavigationDrawer kivymd.navigationdrawer.MDNavigationDrawer
 #:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
+#:import MDTextField kivymd.textfields.MDTextField
+#:import MDList kivymd.list.MDList
+#:import MDDropdownMenu kivymd.menu.MDDropdownMenu
+#:import MDNavigationDrawer kivymd.navigationdrawer.MDNavigationDrawer
 #:import NavigationDrawerDivider kivymd.navigationdrawer.NavigationDrawerDivider
 #:import NavigationDrawerToolbar kivymd.navigationdrawer.NavigationDrawerToolbar
 #:import NavigationDrawerSubheader kivymd.navigationdrawer.NavigationDrawerSubheader
-#:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
-#:import MDSwitch kivymd.selectioncontrols.MDSwitch
-#:import MDList kivymd.list.MDList
-#:import OneLineListItem kivymd.list.OneLineListItem
-#:import TwoLineListItem kivymd.list.TwoLineListItem
-#:import ThreeLineListItem kivymd.list.ThreeLineListItem
-#:import OneLineAvatarListItem kivymd.list.OneLineAvatarListItem
-#:import OneLineIconListItem kivymd.list.OneLineIconListItem
-#:import OneLineAvatarIconListItem kivymd.list.OneLineAvatarIconListItem
-#:import MDTextField kivymd.textfields.MDTextField
-#:import MDSpinner kivymd.spinner.MDSpinner
-#:import MDCard kivymd.card.MDCard
-#:import MDSeparator kivymd.card.MDSeparator
-#:import MDDropdownMenu kivymd.menu.MDDropdownMenu
-#:import get_color_from_hex kivy.utils.get_color_from_hex
-#:import colors kivymd.color_definitions.colors
-#:import SmartTile kivymd.grid.SmartTile
-#:import MDSlider kivymd.slider.MDSlider
-#:import MDTabbedPanel kivymd.tabs.MDTabbedPanel
-#:import MDTab kivymd.tabs.MDTab
-#:import MDProgressBar kivymd.progressbar.MDProgressBar
-#:import MDAccordion kivymd.accordion.MDAccordion
-#:import MDAccordionItem kivymd.accordion.MDAccordionItem
-#:import MDAccordionSubItem kivymd.accordion.MDAccordionSubItem
 #:import MDThemePicker kivymd.theme_picker.MDThemePicker
-#:import MDBottomNavigation kivymd.tabs.MDBottomNavigation
-#:import MDBottomNavigationItem kivymd.tabs.MDBottomNavigationItem
-
 
 NavigationLayout:
     id: nav_layout
@@ -791,8 +764,10 @@ class LibraryList(Screen):
         library_list_grid.clear_widgets()
         for i in self.app.libraries.keys():
             b = SmartTileWithLabel(mipmap=True, source='images/storypixies.png',
-                                   text=i)
+                                   text=i, halign='center')
             b._box_label.theme_text_color = 'Custom'
+            b._box_label.halign='center'
+            b._box_label.font_style='Body1'
             b._box_label.text_color = (1, 1, 1, 1)
             b.bind(on_press=partial(self.app.set_selected_library, i))
             b.bind(on_release=partial(self.app.library_screen))
@@ -895,6 +870,14 @@ class StoryBook(Widget):
         self.pages = ['title'] + [x.strip() for x in self.story_config.get('metadata', 'pages').split(',')]
         self.story_config.write()
 
+    def start_page(self):
+        """
+        Updates the current page to be the first page
+        :return:
+        """
+        self.current_page_no = 0
+        self.current_page = self.pages[0]
+
     def next_page(self):
         """
         Updates the current page to be the next page
@@ -913,10 +896,18 @@ class StoryBook(Widget):
         return self.story_config.get(page, value)
 
     def get_title_image(self):
-        return self.get_story_value(self.pages[0], 'media_location')
+        media_location = self.get_story_value(self.pages[0], 'media_location')
+        if len(media_location) == 0:
+            media_location = 'images/background.png'
+
+        return media_location
 
     def get_story_media(self):
-        return self.get_story_value(self.current_page, 'media_location')
+        media_location = self.get_story_value(self.current_page, 'media_location')
+        if len(media_location) == 0:
+            media_location = 'images/background.png'
+
+        return media_location
 
     def get_story_media_type(self):
         return self.get_story_value(self.current_page, 'media')
@@ -931,6 +922,7 @@ class Story(Screen):
 
     def on_pre_enter(self):
         self.current_story = self.app.get_library_object().get_story()
+        self.current_story.start_page()
         self.assemble_layout()
 
     def on_pre_leave(self):
@@ -1051,6 +1043,7 @@ class StoryPixiesApp(App):
         self.use_kivy_settings = False
         self.creator = root_widget.ids.creator
         self.manager = root_widget.ids.manager
+        self.use_kivy_settings = False
         return root_widget
 
     def add_libraries(self):
