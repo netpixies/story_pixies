@@ -208,12 +208,13 @@ class Creator(Screen):
         return story_item_list
 
     def edit_story(self, edit_story_id):
+        if edit_story_id.library is None or edit_story_id.story is None:
+            Snackbar("Please select a story to edit first.").show()
+            return
+
         self.set_library = edit_story_id.library
         self.set_story = edit_story_id.story
 
-        if self.set_story is None or self.set_library is None:
-            Snackbar("Please select a story to edit first.").show()
-            return
 
         self.setup_settings_panel()
         self.app.story_title_screen()
@@ -792,7 +793,7 @@ class StoryPixiesApp(App):
         self.add_libraries()
 
     def build(self):
-        kv_file = (Path(__file__).parents[0].absolute()).joinpath("storypixies.kv")
+        kv_file = (Path(__file__).parents[0].absolute()).joinpath("layout.kv")
         root_widget = Builder.load_file(str(kv_file))
         self.title = 'Story Pixies'
         # self.settings_cls = LibrarySettings
@@ -852,12 +853,15 @@ class StoryPixiesApp(App):
     @staticmethod
     def intro_text():
         return """
+
 ========================
 Welcome to Storypixies!
 ========================
+
 ***************
 About
 ***************
+
 Storypixies is a tool to create video self-modeling stories to help children master partially
 learned skills. It is particuarly helpful for autistic children, but it can work for anyone!
 
@@ -867,6 +871,7 @@ change. Going on a long trip? Check out *Taking a Trip* stories.
 ***************
 Get Started!
 ***************
+
 1. Navigate using the menu drop down.
 2. Select a library to start reading stories.
 3. Select creator to create your own libraries and stories!
@@ -876,10 +881,9 @@ Get Started!
 Notes
 **********************
 
-- Known bug: Occassionally, the app will take a long time to
- respond upon startup. You can either wait a minute or restart it.
- This is an issue with the kivy app.
-
+Known bug Occassionally, the app will take a long time to
+respond upon startup. You can either wait a minute or restart it.
+This is an issue with the kivy app.
         """
 
 
