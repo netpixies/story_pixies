@@ -45,10 +45,18 @@ sudo pip install pathlib2
 - Clone the repo
 
 ```
+cd ~
 git clone https://github.com/netpixies/storypixies.git
 ```
 
-- Run main
+- Install shortcuts to the Desktop
+
+```
+cd storypixies/linux
+./add-shortcuts.sh
+```
+
+- Or run manually
 
 ```
 cd storypixies
