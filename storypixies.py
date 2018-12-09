@@ -520,6 +520,7 @@ class Creator(Screen):
                                            data=get_story_settings_page(self.set_story.title,
                                                                         new_page,
                                                                         library))
+        self.set_story.story_config.write()
         self.setup_settings_panel()
         self.app.story_title_screen()
 
