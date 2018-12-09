@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import kivy
 import sys
+import imghdr
 
 from kivy.lang import Builder
 from kivy.uix.settings import SettingOptions, SettingsWithSidebar, SettingItem, SettingSpacer, SettingString
@@ -820,9 +821,6 @@ class StoryBook(Widget):
     # Where is the title media?
     title_media_location = StringProperty(None)
 
-    # What kind of media does the title have, image or video?
-    title_media = StringProperty(None)
-
     def __init__(self, **kwargs):
         """
         Initialize starting values. Set kwargs values.
@@ -860,9 +858,6 @@ class StoryBook(Widget):
 
         if self.story_config.get('metadata', 'library') != self.library_parent:
             self.story_config.set('metadata', 'library', self.library_parent)
-
-        # Find the media type (image, video) for this story's title page
-        self.title_media = self.story_config.get('title', 'media')
 
         # Find the media location for this story's title page
         self.title_media_location = self.story_config.get('title', 'media_location')
@@ -909,9 +904,6 @@ class StoryBook(Widget):
             media_location = 'images/background.png'
 
         return media_location
-
-    def get_story_media_type(self):
-        return self.get_story_value(self.current_page, 'media')
 
     def get_story_text(self):
         return self.get_story_value(self.current_page, 'text')
@@ -969,14 +961,22 @@ class Story(Screen):
     def get_media_page(self):
         media_card = MDCard(size_hint=(0.5, 0.9),
                             pos_hint={'center_x': 0.75, 'center_y': 0.55})
-        media_type = self.current_story.get_story_media_type()
-        if media_type == 'image':
-            self.media_property = Image(source=self.current_story.get_story_media(),
+
+        source = self.current_story.get_story_media()
+        try:
+            if len(source) == 0:
+                self.media_property = Image(source='images/background.png',
                                         allow_stretch=False, keep_ratio=True)
-        elif media_type == 'video':
-            self.media_property = VideoPlayer(id=self.current_story.current_page + 'video',
-                                              source=self.current_story.get_story_media(), state='play',
-                                              options={'allow_stretch': True, 'keep_ratio': True})
+            if imghdr.what(source) is not None:
+                self.media_property = Image(source=source,
+                                            allow_stretch=False, keep_ratio=True)
+            else:
+                self.media_property = VideoPlayer(id=self.current_story.current_page + 'video',
+                                                  source=source, state='play',
+                                                  options={'allow_stretch': True, 'keep_ratio': True})
+        except Exception:
+            self.media_property = Image(source='images/background.png',
+                                        allow_stretch=False, keep_ratio=True)
 
         media_card.add_widget(self.media_property)
         return media_card

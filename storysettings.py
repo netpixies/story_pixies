@@ -101,13 +101,6 @@ def get_story_settings_title(name, library):
          'desc': 'Text for the title page',
          'section': 'title',
          'key': 'text'},
-        {'type': 'options',
-         'title': 'Media Type',
-         'desc': 'Image or Video type',
-         'options': ['image', 'video'],
-         'section': 'title',
-         'key': 'media'
-         },
         {'type': 'path',
          'title': 'Media Location',
          'desc': 'Filename of the media',
@@ -127,7 +120,6 @@ def get_page_defaults(name):
     settings_json = {
         'name': name,
         'text': "Add content here.",
-        'media': 'image',
         'media_location': ''
     }
 
@@ -149,13 +141,6 @@ def get_story_settings_page(name, page, library):
          'desc': 'Text for this page',
          'section': page,
          'key': 'text'},
-        {'type': 'options',
-         'title': 'Media Type',
-         'desc': 'Image or Video type',
-         'options': ['image', 'video'],
-         'section': page,
-         'key': 'media'
-         },
         {'type': 'path',
          'title': 'Media Location',
          'desc': 'Filename of the media',
