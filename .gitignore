@@ -10,3 +10,6 @@ video-maybes/*
 docs/Recording*
 templates/Test*
 libraries/*/Test*
+orig.*
+kitchen.py
+storypixies.ini
