@@ -5,6 +5,10 @@ Want to check it out before installing? See the [Storypixies Tour](https://youtu
 
 ## Installation
 
+### Python version
+
+Storypixies currently uses Python 2.7. While Kivy supports Python 3, it is not at the same level as the support for Python 2.7.
+
 ### Current Supported Platforms
 #### Mac
 
@@ -21,7 +25,7 @@ It is recommended to use a VM.
 ```
 sudo add-apt-repository ppa:kivy-team/kivy
 sudo apt-get update
-sudo apt-get install python-kivy
+sudo apt-get install -y python-kivy
 ```
 - Install gstreamer for audio, video
 
@@ -34,8 +38,8 @@ sudo apt-get install -y \
 - Install dependencies
 
 ```
-sudo pip install pathlib2 kivy-garden
-sudo garden install simpletablelayout
+sudo apt-get install -y python-pip git
+sudo pip install pathlib2
 ```
 
 - Clone the repo
