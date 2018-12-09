@@ -128,7 +128,7 @@ def get_page_defaults(name):
         'name': name,
         'text': "Add content here.",
         'media': 'image',
-        'media_location': 'images/background.png'
+        'media_location': ''
     }
 
     return settings_json
