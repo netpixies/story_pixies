@@ -13,3 +13,5 @@ libraries/*/Test*
 orig.*
 kitchen.py
 storypixies.ini
+linux/kidmode.sh
+linux/storypixies.sh
