@@ -12,9 +12,10 @@ Storypixies currently uses Python 2.7. While Kivy supports Python 3, it is not a
 ### Current Supported Platforms
 #### Mac
 
-- Download the dmg (330MB) from [Google Drive](https://drive.google.com/open?id=1m6WMrFLurgOJdwwa2RJ3AjCDORFY7evU) - md5sum 65a4f272f8e4f4e3d57676967a12a7f1
-- Open the dmg and drag to Applications
-- Under Applications, right click and open storypixies
+- Download the dmg (331MB) from [Google Drive](https://drive.google.com/open?id=1m6WMrFLurgOJdwwa2RJ3AjCDORFY7evU) - md5sum d8e61d63eb1865936e4d5e94018066aa
+- Verify the md5 of the dmg
+- Open the dmg and drag Storypixies to Applications
+- Under Applications, right click and open Storypixies
 - Uninstall by moving the Storypixies application to the trash
 
 #### Ubuntu Linux
