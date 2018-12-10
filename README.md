@@ -12,7 +12,7 @@ Storypixies currently uses Python 2.7. While Kivy supports Python 3, it is not a
 ### Current Supported Platforms
 #### Mac
 
-- Download the dmg (331MB) from [Google Drive](https://drive.google.com/open?id=1m6WMrFLurgOJdwwa2RJ3AjCDORFY7evU) - md5sum d8e61d63eb1865936e4d5e94018066aa
+- Download the Storypixies.dmg (331MB) from [Google Drive](https://drive.google.com/open?id=1m6WMrFLurgOJdwwa2RJ3AjCDORFY7evU) - md5sum d8e61d63eb1865936e4d5e94018066aa
 - Verify the md5 of the dmg
 - Open the dmg and drag Storypixies to Applications
 - Under Applications, right click and open Storypixies
@@ -21,7 +21,12 @@ Storypixies currently uses Python 2.7. While Kivy supports Python 3, it is not a
 #### Ubuntu Linux VM
 Ubuntu is supported, but has not been tested as well. The layout displays somewhat better on a mac, but it works for the most part. It is recommended to use the VM, but you can follow the manual instructions below.
 
-- Download the VM ova file (3GB) from [Google Drive](https://drive.google.com/open?id=1pVDeZFWOT3kQ4RM4aEWun028vkhS9V5O) - md5sum b067b347ac4c434ac2fa18e277cc0720
+- Install Virtualbox. The ova was created on Virtualbox version 5.2.18, though that shouldn't matter if it is somewhat different.
+- Download the VM Storypixies.ova file (3GB) from [Google Drive](https://drive.google.com/open?id=1pVDeZFWOT3kQ4RM4aEWun028vkhS9V5O) - md5sum b067b347ac4c434ac2fa18e277cc0720
+- Verify the md5 of the ova
+- Open Virtualbox
+- Navigate to file->import appliance and select the downloaded Storypixies.ova
+- Run the VM and login with the credentials below. Two icons should be available to launch in Kid Mode (without creator enabled) or Full Mode (with all features available).
 
 login: story
 password: story
