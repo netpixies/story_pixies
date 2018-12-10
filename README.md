@@ -1,7 +1,7 @@
 # Storypixies
 
 ## Video Tour
-Want to check it out before installing? See the [Storypixies Tour](https://youtu.be/kmsz7FFOG1o)
+Want to check it out before installing? See the [Storypixies Tour](https://youtu.be/bG7T12aCu4M)
 
 ## Installation
 
