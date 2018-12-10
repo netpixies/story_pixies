@@ -18,9 +18,15 @@ Storypixies currently uses Python 2.7. While Kivy supports Python 3, it is not a
 - Under Applications, right click and open Storypixies
 - Uninstall by moving the Storypixies application to the trash
 
-#### Ubuntu Linux
-It is recommended to use a VM.
+#### Ubuntu Linux VM
+Ubuntu is supported, but has not been tested as well. The layout displays somewhat better on a mac, but it works for the most part. It is recommended to use the VM, but you can follow the manual instructions below.
 
+- Download the VM ova file (3GB) from [Google Drive](https://drive.google.com/open?id=1pVDeZFWOT3kQ4RM4aEWun028vkhS9V5O) - md5sum 
+
+login: story
+password: story
+
+#### Ubuntu Linux Manual Installation
 - The following link is summed up below. [Install Kivy](https://kivy.org/doc/stable/installation/installation-linux.html)
 
 ```
