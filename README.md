@@ -29,6 +29,7 @@ Ubuntu is supported, but has not been tested as well. The layout displays somewh
 - Run the VM and login with the credentials below. Two icons should be available to launch in Kid Mode (without creator enabled) or Full Mode (with all features available).
 
 login: story
+
 password: story
 
 #### Ubuntu Linux Manual Installation
